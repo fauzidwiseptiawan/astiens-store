@@ -72,7 +72,7 @@
                             <a href="{{ route('brand.index') }}">Brand</a>
                         </li>
                         <li id="activeAttributes">
-                            <a href="#">Attributes</a>
+                            <a href="{{ route('attributes.index') }}">Attributes</a>
                         </li>
                         <li>
                             <a href="apps-email-read.html">Collection</a>

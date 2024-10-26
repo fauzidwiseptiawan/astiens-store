@@ -3,13 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuid;
+
+    public $incrementing = false;   // Menonaktifkan auto-increment
     public $timestamps = false;
+    protected $keyType = 'string'; // Mengubah tipe kunci menjadi string
     protected $table = 'category';
+
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
         'updated_at' => 'datetime:Y-m-d H:i:s',

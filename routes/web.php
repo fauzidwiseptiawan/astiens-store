@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Backend\Auth\AuthController;
 use App\Http\Controllers\Backend\DashboardController;
+use App\Http\Controllers\Backend\Product\AttributesController;
 use App\Http\Controllers\Backend\Product\BrandController;
 use App\Http\Controllers\Backend\Product\CategoryController;
 use App\Http\Controllers\Backend\Product\ProductController;
@@ -40,4 +41,10 @@ Route::group(['middleware' => 'admin'], function () {
     Route::post('panel/admin/brand/destroy-selected', [BrandController::class, 'destroy_selected'])->name('brand.destroySelected');
     Route::post('panel/admin/brand/destroy-soft/{id}', [BrandController::class, 'destroy_soft'])->name('brand.destroySoft');
     Route::resource('panel/admin/brand', BrandController::class);
+    // route sub category
+    Route::get('panel/admin/attributes/fetch', [AttributesController::class, 'fetch'])->name('attributes.fetch');
+    Route::post('panel/admin/attributes/change-active', [AttributesController::class, 'change_active'])->name('attributes.changeActive');
+    Route::post('panel/admin/attributes/destroy-selected', [AttributesController::class, 'destroy_selected'])->name('attributes.destroySelected');
+    Route::post('panel/admin/attributes/destroy-soft/{id}', [AttributesController::class, 'destroy_soft'])->name('attributes.destroySoft');
+    Route::resource('panel/admin/attributes', AttributesController::class);
 });

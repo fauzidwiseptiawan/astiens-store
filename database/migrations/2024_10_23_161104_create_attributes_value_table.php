@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sub_category', function (Blueprint $table) {
+        Schema::create('attributes_value', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('category_id');
+            $table->uuid('attributes_id');
             $table->string('name')->unique();
-            $table->string('slug')->unique();
+            $table->string('code_color');
             $table->enum('is_active', [0, 1])->default(1);
             $table->enum('is_deleted', [0, 1])->default(0);
             $table->timestamp('created_at')->useCurrent();
@@ -25,9 +25,9 @@ return new class extends Migration
             $table->timestamp('deleted_at')->nullable();
             $table->string('deleted_by')->nullable();
 
-            $table->foreign('category_id')
+            $table->foreign('attributes_id')
                 ->references('id')
-                ->on('category')
+                ->on('attributes')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });
@@ -38,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sub_category');
+        Schema::dropIfExists('attributes_value');
     }
 };

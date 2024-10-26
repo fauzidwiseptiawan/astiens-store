@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Traits\HasUuid;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasUuid;
+
+    public $incrementing = false;   // Menonaktifkan auto-increment
+    protected $keyType = 'string'; // Mengubah tipe kunci menjadi string
     protected $table = 'user';
     /**
      * The attributes that are mass assignable.

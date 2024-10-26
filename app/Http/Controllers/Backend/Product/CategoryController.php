@@ -30,8 +30,13 @@ class CategoryController extends Controller
             ->addColumn('select_all', function ($category) {
                 return '<input type="checkbox" class="form-check-input select-form" id="select" name="select" value="' . $category->id . '">';
             })
+
             ->addColumn('image', function ($category) {
-                return '<img src="' . asset('storage/upload/image/category/thumbnail/' . $category->image) . '" class="img-thumbnail" height="80" width="80" alt="' . asset('storage/upload/image/category/' . $category->image) . '">';
+                if ($category == '') {
+                    return '<img src="' . asset('storage/upload/image/category/thumbnail/' . $category->image) . '" class="img-thumbnail" height="80" width="80" alt="' . asset('storage/upload/image/category/' . $category->image) . '">';
+                } else {
+                    return '<img src="https://placehold.co/400" class="img-thumbnail" height="80" width="80" alt="https://placehold.co/400">';
+                }
             })
             ->addColumn('publish', function ($category) {
                 if ($category->is_active == 1) {

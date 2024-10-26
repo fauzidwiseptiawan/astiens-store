@@ -31,7 +31,11 @@ class BrandController extends Controller
                 return '<input type="checkbox" class="form-check-input select-form" id="select" name="select" value="' . $brand->id . '">';
             })
             ->addColumn('image', function ($brand) {
-                return '<img src="' . asset('storage/upload/image/brand/thumbnail/' . $brand->image) . '" class="img-thumbnail" height="80" width="80" alt="' . asset('storage/upload/image/brand/' . $brand->image) . '">';
+                if ($brand == '') {
+                    return '<img src="' . asset('storage/upload/image/brand/thumbnail/' . $brand->image) . '" class="img-thumbnail" height="80" width="80" alt="' . asset('storage/upload/image/brand/' . $brand->image) . '">';
+                } else {
+                    return '<img src="https://placehold.co/400" class="img-thumbnail" height="80" width="80" alt="https://placehold.co/400">';
+                }
             })
             ->addColumn('publish', function ($brand) {
                 if ($brand->is_active == 1) {
