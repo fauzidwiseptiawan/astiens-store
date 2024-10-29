@@ -196,109 +196,6 @@
                         </div>
                         <!-- end card body-->
                     </div>
-                    <!-- product price -->
-                    <div class="card">
-                        <div class="card-header bg-light-subtle">
-                            <div class="row">
-                                <div class="col-6 col-md-8">
-                                    <h5>Product price, stock</h5>
-                                </div>
-                                <div class="col-6 col-md-4" style="text-align: end;">
-                                    <label for="name" class="form-label ms-3 me-2">Variant Product </label>
-                                    <label class="slideon">
-                                        <input type="checkbox" name="is_variant" value="1" id="isVariant">
-                                        <span class="slideon-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body" id="notVariant">
-                            <div class="col-lg-12">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Regular price <strong
-                                            class="text-danger">*</strong></label>
-                                    <input type="text" id="price" name="price" class="form-control"
-                                        placeholder="Enter regular price" onkeyup="money_format(this)">
-                                    <div id="errorPrice" class="invalid-feedback"></div>
-                                </div>
-                            </div> <!-- end col -->
-                            <div class="col-lg-12">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">SKU <strong
-                                            class="text-danger">*</strong></label>
-                                    <input type="text" id="sku" name="sku" class="form-control"
-                                        placeholder="Enter SKU">
-                                    <div id="errorSku" class="invalid-feedback"></div>
-                                </div>
-                            </div> <!-- end col -->
-                            <div class="col-lg-12">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Stock <strong
-                                            class="text-danger">*</strong></label>
-                                    <input type="number" id="stock" name="stock" class="form-control"
-                                        placeholder="Enter stock">
-                                    <div id="errorStock" class="invalid-feedback"></div>
-                                </div>
-                            </div> <!-- end col -->
-                        </div>
-                        <div class="card-body" id="variant">
-                            <div class="row">
-                                <div class="col-lg-3">
-                                    <input type="text" class="form-control" value="Attributes" disabled>
-                                </div>
-                                <div class="col-lg-9">
-                                    <select class="form-control choice_attributes" data-toggle="choice_attributes"
-                                        name="choice_attributes[]" id="choiseAttributes" multiple="multiple">
-                                        <option></option>
-                                        @foreach ($attributes as $item)
-                                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <p class="mt-2 mb-2">Choose the attributes of this product and then input attribute of each
-                                    attribute
-                                </p>
-                                <div class="value-attributes">
-                                </div>
-                            </div>
-                            <!-- detail variant -->
-                            <div class="table-responsive mt-3" id="formDetailVariant">
-                                <table class="table table-bordered display responsive nowrap detail-variant"
-                                    id="detailVariant" width="100%">
-                                    <thead>
-                                        <tr>
-                                            <th width="30%">Variant</th>
-                                            <th>Variant Price</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tbody"></tbody>
-                                </table>
-                            </div>
-                            <!-- end table-responsive-->
-                        </div>
-                        <!-- end card body-->
-                    </div>
-                    <!-- product description -->
-                    <div class="card">
-                        <h5 class="card-header bg-light-subtle">Product Description</h5>
-                        <div class="card-body">
-                            <div class="col-lg-12">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Short Description <strong
-                                            class="text-danger">*</strong></label>
-                                    <textarea name="short_desc" class="form-control" id="shortDesc" placeholder="Short Description"></textarea>
-                                </div>
-                            </div> <!-- end col -->
-                            <div class="col-lg-12">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Description <strong
-                                            class="text-danger">*</strong></label>
-                                    <textarea name="long_desc" class="form-control" id="longDesc" placeholder="Short Description"></textarea>
-                                </div>
-                            </div>
-                        </div> <!-- end col -->
-                    </div>
-                    <!-- end card -->
                 </div>
                 <!-- product price -->
                 <div class="card">
@@ -403,6 +300,7 @@
                     </div> <!-- end col -->
                 </div>
                 <!-- end card -->
+
             </div>
             <!-- row 2 -->
             <div class="col-xxl-4 col-xl-4 col-lg-4">
@@ -648,24 +546,24 @@
                     const reader = new FileReader();
                     reader.onload = function(event) {
                         const imgElement = `
-                <div class="card mt-1 shadow-none border">
-                    <div class="p-1">
-                        <div class="row align-items-center">
-                            <div class="col-auto">
-                                <img src="${event.target.result}" alt="image" class="avatar-sm rounded bg-light" />
+                        <div class="card mt-1 shadow-none border">
+                            <div class="p-1">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <img src="${event.target.result}" alt="image" class="avatar-sm rounded bg-light" />
+                                    </div>
+                                    <div class="col ps-0">
+                                        <a class="text-muted fw-bold">${file.name}</a>
+                                        <p class="mb-0">${(file.size / 1024).toFixed(2)} KB</p>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="button" class="btn btn-link fs-16 text-muted removeImage">
+                                            <i class="ri-close-line"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col ps-0">
-                                <a class="text-muted fw-bold">${file.name}</a>
-                                <p class="mb-0">${(file.size / 1024).toFixed(2)} KB</p>
-                            </div>
-                            <div class="col-auto">
-                                <button type="button" class="btn btn-link fs-16 text-muted removeImage">
-                                    <i class="ri-close-line"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
+                        </div>`;
                         thumbnailContainer.append(imgElement);
 
                         if (isSingle) {
@@ -807,17 +705,17 @@
 
                     // Menambahkan elemen HTML untuk setiap atribut yang dipilih
                     $('.value-attributes').append(`
-                <div class="row mt-2" id="attribute-row-${id}">
-                    <div class="col-lg-3">
-                        <input type="text" class="form-control" value="${text}" disabled>
-                    </div>
-                    <div class="col-lg-9">
-                        <select class="form-control attributes${id} attributes_choise" name="choise_attributes[]" id="choiseAttributes${id}" multiple="multiple">
-                            <option></option>
-                        </select>
-                    </div>
-                </div>
-            `);
+                        <div class="row mt-2" id="attribute-row-${id}">
+                            <div class="col-lg-3">
+                                <input type="text" class="form-control" value="${text}" disabled>
+                            </div>
+                            <div class="col-lg-9">
+                                <select class="form-control attributes${id} attributes_choise" name="choise_attributes[]" id="choiseAttributes${id}" multiple="multiple">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+                    `);
 
                     // Inisialisasi AJAX dan Select2
                     $.get(url, function(response) {
