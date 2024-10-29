@@ -505,6 +505,64 @@
         // nav active
         $('#sidebarProduct, .activeProduct, #activeProduct').addClass('show menuitem-active');
 
+        function initializeTinyMCE(selector, height) {
+            tinymce.init({
+                selector: selector,
+                height: height, // Mengatur tinggi editor sesuai parameter
+                promotion: false,
+                license_key: 'gpl',
+                deprecation_warnings: false,
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                    'bold italic backcolor | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | help',
+                visual_table_class: 'tiny-table',
+                statusbar: false,
+                fontsize_formats: "8px 10px 12px 14px 18px 24px 36px",
+                relative_urls: false,
+                remove_script_host: false,
+                convert_urls: true,
+                automatic_uploads: true,
+                file_browser_callback_types: 'file image media',
+                file_picker_callback: (cb, value, meta) => {
+                    const input = document.createElement('input');
+                    input.setAttribute('type', 'file');
+                    input.setAttribute('accept', 'image/*');
+
+                    input.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.addEventListener('load', () => {
+                            const id = 'blobid' + new Date().getTime();
+                            const blobCache = tinymce.activeEditor.editorUpload.blobCache;
+                            const base64 = reader.result.split(',')[1];
+                            const blobInfo = blobCache.create(id, file, base64);
+                            blobCache.add(blobInfo);
+
+                            // Panggil callback dan isi Title dengan nama file
+                            cb(blobInfo.blobUri(), {
+                                title: file.name
+                            });
+                        });
+                        reader.readAsDataURL(file);
+                    });
+
+                    input.click();
+                }
+            });
+        }
+
+        // Inisialisasi TinyMCE dengan tinggi berbeda
+        initializeTinyMCE('#shortDesc', 200);
+        initializeTinyMCE('#longDesc', 500);
+
+
+
         // preview image single and multiple image
         $(document).ready(function() {
             // Inisialisasi thumbnail

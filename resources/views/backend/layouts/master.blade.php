@@ -353,6 +353,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
     <!--  footable Plugin Js -->
     <script src="{{ asset('template/backend') }}/vendor/footable/js/footable.min.js"></script>
+    <!-- Tinymce -->
+    <script src="{{ asset('template/backend') }}/vendor/tinymce/tinymce.min.js"></script>
     <!-- Dashboard App js -->
     {{-- <script src="{{ asset('template/backend') }}/js/pages/demo.dashboard.js"></script> --}}
     <!-- App js -->
