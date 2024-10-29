@@ -112,7 +112,7 @@
                                     <strong class="text-danger">*</strong></label>
                                 <input type="file" id="image1" name="image" class="form-control">
                                 <div id="errorImage" class="invalid-feedback"></div>
-                                <div class="col-xxl-3 col-lg-12" id="thumbnail1">
+                                <div class="col-xxl-12 col-lg-12" id="thumbnail1">
                                     <div class="card mt-1 shadow-none border">
                                         <div class="p-1">
                                             <div class="row align-items-center">
@@ -148,7 +148,7 @@
                                     <small>(600x600)</small></label>
                                 <input type="file" id="image2" name="image" class="form-control" multiple>
                                 <div id="errorImage" class="invalid-feedback"></div>
-                                <div class="col-xxl-3 col-lg-12" id="thumbnail2">
+                                <div class="col-xxl-12 col-lg-12" id="thumbnail2">
                                     <div class="card mt-1 shadow-none border">
                                         <div class="p-1">
                                             <div class="row align-items-center">
@@ -689,7 +689,7 @@
             });
         });
 
-
+        // Initialisasi select attributes
         $('#choiseAttributes').on('change', function() {
             const selectAttributes = $(this).select2('data');
             $('.value-attributes').empty();
@@ -860,55 +860,73 @@
         // Membuat konten untuk baris anak
         function createChildRowContent(index) {
             return `
-    <div class="child-row" style="height: auto; overflow-y: auto;">
-        <div class="row mb-3">
-            <label for="stock" class="col-2 col-form-label">Stock</label>
-            <div class="col-10">
-                <input type="number" class="form-control" name="variant_stock[]" placeholder="Stock" value="${variantData[index] ? variantData[index].stock : ''}">
-            </div>
-        </div>
-        <div class="row mb-3">
-            <label for="sku" class="col-2 col-form-label">Sku</label>
-            <div class="col-10">
-                <input type="text" class="form-control" name="sku[]" placeholder="SKU Product" value="${variantData[index] ? variantData[index].sku : ''}">
-            </div>
-        </div>
-        <div class="row mb-3">
-            <label for="image" class="col-2 col-form-label">Image</label>
-            <div class="col-10">
-                <input type="file" id="image_${index}" name="image[]" class="form-control">
-                <div id="errorImage_${index}" class="invalid-feedback"></div>
-                <div class="col-xxl-3 col-lg-12" id="thumbnail_${index}" style="display: ${variantData[index] && variantData[index].image ? 'block' : 'none'};">
-                    <div class="card mt-1 shadow-none border">
-                        <div class="p-1">
-                            <div class="row align-items-center">
-                                <div class="col-auto">
-                                    <img id="imagePreview_${index}" src="${variantData[index] && variantData[index].image ? variantData[index].image : 'https://via.placeholder.com/150?text=No+Image'}" alt="image" class="avatar-sm rounded bg-light" />
-                                </div>
-                                <div class="col ps-0">
-                                    <a class="text-muted fw-bold file-name_${index}">${variantData[index] && variantData[index].fileName ? variantData[index].fileName : ''}</a>
-                                    <a class="text-muted fw-bold file-format_${index}">${variantData[index] && variantData[index].fileFormat ? variantData[index].fileFormat : ''}</a>
-                                    <p class="mb-0 file-size_${index}">${variantData[index] && variantData[index].fileSize ? variantData[index].fileSize : ''}</p>
-                                </div>
-                                <div class="col-auto">
-                                    <button type="button" class="btn btn-link fs-16 text-muted removeImage" data-index="${index}">
-                                        <i class="ri-close-line"></i>
-                                    </button>
+            <div class="child-row" style="height: auto; overflow-y: auto;">
+                <div class="row mb-3">
+                    <label for="stock" class="col-2 col-form-label">Stock</label>
+                    <div class="col-10">
+                        <input type="number" class="form-control" name="variant_stock[]" placeholder="Stock" value="${variantData[index] ? variantData[index].stock : ''}">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="sku" class="col-2 col-form-label">Sku</label>
+                    <div class="col-10">
+                        <input type="text" class="form-control" name="sku[]" placeholder="SKU Product" value="${variantData[index] ? variantData[index].sku : ''}">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <label for="image" class="col-2 col-form-label">Image</label>
+                    <div class="col-10">
+                        <input type="file" id="image_${index}" name="image[]" class="form-control">
+                        <div id="errorImage_${index}" class="invalid-feedback"></div>
+                        <div class="col-xxl-12 col-lg-12" id="thumbnail_${index}" style="display: ${variantData[index] && variantData[index].image ? 'block' : 'none'};">
+                            <div class="card mt-1 shadow-none border">
+                                <div class="p-1">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <img id="imagePreview_${index}" src="${variantData[index] && variantData[index].image ? variantData[index].image : 'https://via.placeholder.com/150?text=No+Image'}" alt="image" class="avatar-sm rounded bg-light" />
+                                        </div>
+                                        <div class="col ps-0">
+                                            <a class="text-muted fw-bold file-name_${index}">${variantData[index] && variantData[index].fileName ? variantData[index].fileName : ''}</a>
+                                            <a class="text-muted fw-bold file-format_${index}">${variantData[index] && variantData[index].fileFormat ? variantData[index].fileFormat : ''}</a>
+                                            <p class="mb-0 file-size_${index}">${variantData[index] && variantData[index].fileSize ? variantData[index].fileSize : ''}</p>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="button" class="btn btn-link fs-16 text-muted removeImage" data-index="${index}">
+                                                <i class="ri-close-line"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>`;
+            </div>`;
         }
 
-        // Menangani preview gambar
+        // Membuat validasi upload image dan input image
         function handleImagePreview(index) {
             $(`#image_${index}`).on('change', function(event) {
                 const file = event.target.files[0];
+                const allowedFormats = ['image/jpeg', 'image/png', 'image/jpg']; // Format yang diperbolehkan
+                const maxSize = 2 * 1024 * 1024; // Maksimal ukuran 2MB
+
                 if (file) {
+                    // Validasi format file
+                    if (!allowedFormats.includes(file.type)) {
+                        $(`#errorImage_${index}`).text('Only JPG, JPEG, and PNG formats are allowed.').show();
+                        resetImageInput(index);
+                        return;
+                    }
+
+                    // Validasi ukuran file
+                    if (file.size > maxSize) {
+                        $(`#errorImage_${index}`).text('File size must be less than 2MB.').show();
+                        resetImageInput(index);
+                        return;
+                    }
+
+                    // Jika validasi berhasil, lanjutkan dengan preview
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const previewImage = e.target.result;
@@ -916,7 +934,7 @@
                         $(`#thumbnail_${index}`).show();
                         $(`.file-name_${index}`).text(file.name.length > 5 ? file.name.substr(0, 5) + '.. ' :
                             file.name);
-                        $(`.file-format_${index}`).text(file.type.split('.').pop());
+                        $(`.file-format_${index}`).text(file.type.split('/').pop());
                         $(`.file-size_${index}`).text((file.size / 1024).toFixed(2) + ' KB');
 
                         // Simpan data file
@@ -925,13 +943,29 @@
                             sku: $(`input[name="sku[]"]`).val(),
                             image: previewImage,
                             fileName: file.name,
-                            fileFormat: file.type.split('.').pop(),
+                            fileFormat: file.type.split('/').pop(),
                             fileSize: (file.size / 1024).toFixed(2) + ' KB'
                         };
                     };
                     reader.readAsDataURL(file);
+                    $(`#errorImage_${index}`).hide(); // Sembunyikan pesan error jika validasi berhasil
                 }
             });
+        }
+
+        // Fungsi untuk mereset input gambar jika terjadi kesalahan
+        function resetImageInput(index) {
+            $(`#image_${index}`).val('');
+            $(`#imagePreview_${index}`).attr('src', 'https://via.placeholder.com/150?text=No+Image');
+            $(`#thumbnail_${index}`).hide();
+            $(`.file-name_${index}, .file-format_${index}, .file-size_${index}`).text('');
+
+            if (variantData[index]) {
+                variantData[index].image = null;
+                variantData[index].fileName = '';
+                variantData[index].fileFormat = '';
+                variantData[index].fileSize = '';
+            }
         }
 
         // Event listener untuk menghapus gambar
