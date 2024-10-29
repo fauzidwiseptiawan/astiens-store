@@ -90,7 +90,7 @@ class CategoryController extends Controller
                 $resize_img->resize(300, 300)->save($file);
                 $file->storeAs($path_resize, $file_name, 'public');
                 // validation is successful it is saved to the database
-                Category::insert([
+                Category::create([
                     'name' => $request->name,
                     'slug' => $request->slug,
                     'position_order' => $request->position,

@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Backend\Auth\AuthController;
 use App\Http\Controllers\Backend\DashboardController;
+use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\Product\AttributesController;
+use App\Http\Controllers\Backend\Product\AttributesValueController;
 use App\Http\Controllers\Backend\Product\BrandController;
 use App\Http\Controllers\Backend\Product\CategoryController;
 use App\Http\Controllers\Backend\Product\ProductController;
@@ -22,7 +24,12 @@ Route::group(['middleware' => 'admin'], function () {
     // route dashboard
     Route::get('panel/admin/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     // route product
-    Route::resource('panel/admin/product', SubCategoryController::class);
+    Route::post('panel/admin/product/create-variants', [ProductController::class, 'create_variants'])->name('product.createVariants');
+    Route::get('panel/admin/product/generate-item-code', [ProductController::class, 'generate_item_code'])->name('product.generateItemCode');
+    Route::get('panel/admin/product/get-value/{id}', [ProductController::class, 'get_value'])->name('product.getValue');
+    Route::get('panel/admin/product/sub-category/{id}', [ProductController::class, 'sub_category'])->name('product.subCategory');
+    Route::resource('panel/admin/product', ProductController::class);
+
     // route category
     Route::get('panel/admin/category/fetch', [CategoryController::class, 'fetch'])->name('category.fetch');
     Route::post('panel/admin/category/change-active', [CategoryController::class, 'change_active'])->name('category.changeActive');
@@ -41,10 +48,18 @@ Route::group(['middleware' => 'admin'], function () {
     Route::post('panel/admin/brand/destroy-selected', [BrandController::class, 'destroy_selected'])->name('brand.destroySelected');
     Route::post('panel/admin/brand/destroy-soft/{id}', [BrandController::class, 'destroy_soft'])->name('brand.destroySoft');
     Route::resource('panel/admin/brand', BrandController::class);
-    // route sub category
+    // route sub attributes
     Route::get('panel/admin/attributes/fetch', [AttributesController::class, 'fetch'])->name('attributes.fetch');
     Route::post('panel/admin/attributes/change-active', [AttributesController::class, 'change_active'])->name('attributes.changeActive');
     Route::post('panel/admin/attributes/destroy-selected', [AttributesController::class, 'destroy_selected'])->name('attributes.destroySelected');
     Route::post('panel/admin/attributes/destroy-soft/{id}', [AttributesController::class, 'destroy_soft'])->name('attributes.destroySoft');
     Route::resource('panel/admin/attributes', AttributesController::class);
+    // route sub attributes value
+    Route::get('panel/admin/attributes-value/fetch/{id}', [AttributesValueController::class, 'fetch'])->name('attributes-value.fetch');
+    Route::post('panel/admin/attributes-value/change-active', [AttributesValueController::class, 'change_active'])->name('attributes-value.changeActive');
+    Route::post('panel/admin/attributes-value/destroy-selected', [AttributesValueController::class, 'destroy_selected'])->name('attributes-value.destroySelected');
+    Route::post('panel/admin/attributes-value/destroy-soft/{id}', [AttributesValueController::class, 'destroy_soft'])->name('attributes-value.destroySoft');
+    Route::resource('panel/admin/attributes-value', AttributesValueController::class);
+    // route sub oder
+    Route::resource('panel/admin/order', OrderController::class);
 });

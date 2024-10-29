@@ -25,7 +25,8 @@
                         <h4 class="m-0 d-print-none">All @yield('title')</h4>
                     </div>
                     <div class="float-end">
-                        <a href="#" class="btn btn-primary rounded-pill"><i class="ri-add-fill me-1"></i>
+                        <a href="{{ route('product.create') }}" class="btn btn-primary rounded-pill"><i
+                                class="ri-add-fill me-1"></i>
                             <span>Add New @yield('title')</span> </a>
                         <button type="button" class="btn btn-danger rounded-pill" id="bulkDelete"><i
                                 class="ri-delete-bin-5-line me-1"></i> <span>Bulk Delete</span> </button>

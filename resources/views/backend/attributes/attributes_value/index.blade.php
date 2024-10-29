@@ -1,5 +1,5 @@
 @extends('backend.layouts.master')
-@section('title', 'Attributes')
+@section('title', 'Attributes Value')
 @section('content')
     <!-- Start Content-->
     <div class="container-fluid">
@@ -26,7 +26,7 @@
                     </div>
                     <div class="float-end">
                         <button type="button" class="btn btn-primary rounded-pill" data-bs-toggle="modal"
-                            data-bs-target="#modal-add-attributes"><i class="ri-add-fill me-1"></i> <span>Add New
+                            data-bs-target="#modal-add-attributes-value"><i class="ri-add-fill me-1"></i> <span>Add New
                                 @yield('title')</span> </button>
                         <button type="button" class="btn btn-danger rounded-pill" id="bulkDelete"><i
                                 class="ri-delete-bin-5-line me-1"></i> <span>Bulk Delete</span> </button>
@@ -36,13 +36,15 @@
         </div>
         <div class="card">
             <div class="card-body">
-                <table id="tableAttributes" class="table dt-responsive nowrap w-100">
+                <input type="hidden" id="url" value="{{ $uri }}">
+                <table id="tableAttributesValue" class="table dt-responsive nowrap w-100">
                     <thead>
                         <tr>
                             <th><input type="checkbox" class="form-check-input select-form" id="selectAll"
                                     name="select_all">
                             </th>
                             <th>#</th>
+                            <th>Attributes</th>
                             <th>Name</th>
                             <th>Published</th>
                             <th>Action</th>
@@ -57,18 +59,32 @@
     </div> <!-- end col-->
 
     {{-- modal add attributes --}}
-    <div class="modal fade" id="modal-add-attributes" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal fade" id="modal-add-attributes-value" data-bs-backdrop="static" data-bs-keyboard="false"
+        tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">Add @yield('title')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div> <!-- end modal header -->
-                <form class="attributes" action="{{ route('attributes.store') }}" method="POST">
+                <form class="attributes-value" action="{{ route('attributes-value.store') }}" method="POST">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-lg-12">
+                                <div class="mb-3">
+                                    <label for="attributes" class="form-label">Attributes <strong
+                                            class="text-danger">*</strong></label>
+                                    <select class="form-control attributes" data-toggle="attributes" name="attributes_id"
+                                        id="attributesId">
+                                        <option></option>
+                                        @foreach ($attributes as $item)
+                                            <option value="{{ $item->id }}" {{ $item->id == $uri ? 'selected' : '' }}>
+                                                {{ $item->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div id="errorAttributes" class="invalid-feedback"></div>
+                                </div>
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Name <strong
                                             class="text-danger">*</strong></label>
@@ -81,7 +97,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" id="close" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" id="addAttributes">Save</button>
+                        <button type="submit" class="btn btn-primary" id="addAttributesValue">Save</button>
                     </div> <!-- end modal footer -->
                 </form>
             </div> <!-- end modal content-->
@@ -89,20 +105,29 @@
     </div>
 
     {{-- modal update  attributes --}}
-    <div class="modal fade" id="modal-update-attributes" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-        role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal fade" id="modal-update-attributes-value" data-bs-backdrop="static" data-bs-keyboard="false"
+        tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">Update @yield('title')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div> <!-- end modal header -->
-                <form class="attributes" method="POST">
+                <form class="attributes-value" method="POST">
                     <input type="hidden" name="_method" value="PUT">
                     <input type="hidden" id="edtId">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-lg-12">
+                                <div class="mb-3">
+                                    <label for="attributes" class="form-label">Attributes <strong
+                                            class="text-danger">*</strong></label>
+                                    <select class="form-control attributes" data-toggle="attributes" name="attributes_id"
+                                        id="edtAttributesId">
+                                        <option></option>
+                                    </select>
+                                    <div id="errorAttributes" class="invalid-feedback"></div>
+                                </div>
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Name <strong
                                             class="text-danger">*</strong></label>
@@ -122,25 +147,28 @@
             </div> <!-- end modal content-->
         </div> <!-- end modal dialog-->
     </div>
+    <!-- End Content-->
 
 @endsection
 
 @push('page-scripts')
     <script>
-        // generate slug
-        $(document).on("keyup", "#name", function() {
-            var name = $('#name').val();
-        })
-
-        // generate edit slug
-        $(document).on("keyup", "#edtName", function() {
-            var name = $('#edtName').val();
-        })
+        $('.activeProduct ').addClass('menuitem-active')
+        $('#sidebarProduct').addClass('show')
+        $('#activeAttributes').addClass('menuitem-active')
+        // select 2 category
+        $(document).ready(function() {
+            $('.attributes').select2({
+                placeholder: 'Select Attributes',
+                allowClear: false,
+                disabled: true
+            });
+        });
 
         // click close modal reset form
         $(document).on("click", "#close", function() {
-            $('.attributes')[0].reset();
-            $('.attributes').find('.form-control').removeClass('is-invalid');
+            $('.attributes-value')[0].reset();
+            $('.attributes-value').find('.form-control').removeClass('is-invalid');
         })
 
         // function select all
@@ -150,11 +178,11 @@
         })
 
         // function select one
-        $("#tableAttributes tbody").on('click', '.select-form', function() {
+        $("#tableAttributesValue tbody").on('click', '.select-form', function() {
             if ($(this).prop('checked') != true) {
                 $("#selectAll").prop('checked', false)
             }
-            var selectAll = $("#tableAttributes tbody .select-form:checked")
+            var selectAll = $("#tableAttributesValue tbody .select-form:checked")
             var devareSelected = (selectAll.length > 0)
         })
 
@@ -162,12 +190,16 @@
         let table;
         let check = 0
         $(function() {
-            table = $("#tableAttributes").DataTable({
+            var id = $("#url").val();
+            var url = "{{ route('attributes-value.fetch', ':id') }}";
+            url = url.replace(':id', id);
+
+            table = $("#tableAttributesValue").DataTable({
                 responsive: true,
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: "{{ route('attributes.fetch') }}",
+                    url: url,
                     type: "GET",
                 },
                 order: [
@@ -186,19 +218,22 @@
                         width: "7%"
                     },
                     {
+                        data: 'attributes'
+                    },
+                    {
                         data: 'name'
                     },
                     {
                         data: 'publish',
                         searchable: false,
                         sortable: false,
-                        width: "20%"
+                        width: "15%"
                     },
                     {
                         data: 'action',
                         searchable: false,
                         sortable: false,
-                        width: "25%"
+                        width: "20%"
                     },
                 ],
                 pagingType: "full_numbers",
@@ -241,7 +276,7 @@
             });
 
             $.ajax({
-                url: "{{ route('attributes.changeActive') }}",
+                url: "{{ route('attributes-value.changeActive') }}",
                 type: "POST",
                 dataType: "JSON",
                 processData: false,
@@ -265,13 +300,15 @@
         })
 
         // add attributes
-        $(document).on("click", "#addAttributes", function(e) {
+        $(document).on("click", "#addAttributesValue", function(e) {
             e.preventDefault();
 
             var name = $('#name').val();
+            var attributes = $('#attributesId').val();
 
             var fd = new FormData();
             fd.append("name", name);
+            fd.append("attributes_id", attributes);
 
             $.ajaxSetup({
                 headers: {
@@ -280,23 +317,23 @@
             });
 
             $.ajax({
-                url: $('.attributes').attr('action'),
-                type: $('.attributes').attr('method'),
+                url: $('.attributes-value').attr('action'),
+                type: $('.attributes-value').attr('method'),
                 dataType: "JSON",
                 processData: false,
                 contentType: false,
                 data: fd,
                 beforeSend: function() {
-                    $('#addAttributes').attr('disabled', 'disabled');
-                    $('#addAttributes').html('<i class="ri-loader-4-line"></i>');
+                    $('#addAttributesValue').attr('disabled', 'disabled');
+                    $('#addAttributesValue').html('<i class="ri-loader-4-line"></i>');
                 },
                 complete: function() {
-                    $('#addAttributes').removeAttr('disabled');
-                    $('#addAttributes').html('Save');
+                    $('#addAttributesValue').removeAttr('disabled');
+                    $('#addAttributesValue').html('Save');
                 },
                 success: function(response) {
                     if (response.status == 200) {
-                        $('#modal-add-attributes').modal('hide')
+                        $('#modal-add-attributes-value').modal('hide')
                         $.toast({
                             text: response.message,
                             icon: 'success',
@@ -305,8 +342,8 @@
                             position: 'top-right',
                             afterShown: function() {
                                 table.ajax.reload();
-                                $('.attributes')[0].reset();
-                                $('.attributes').find('.form-control').removeClass(
+                                $('.attributes-value')[0].reset();
+                                $('.attributes-value').find('.form-control').removeClass(
                                     'is-invalid');
                             },
                         });
@@ -329,7 +366,7 @@
             e.preventDefault();
 
             var id = $(this).attr("value");
-            var url = "{{ route('attributes.show', ':id') }}";
+            var url = "{{ route('attributes-value.show', ':id') }}";
             url = url.replace(':id', id);
 
             $.ajax({
@@ -340,9 +377,27 @@
                     id: id
                 },
                 success: function(response) {
-                    $('#modal-update-attributes').modal('show');
-                    $('#edtId').val(response.sub_category.id);
-                    $('#edtName').val(response.sub_category.name);
+                    var attributes_value = response.attributes_value;
+                    var attributes = response.attributes;
+
+                    var isi = '';
+                    for (let i = 0; i < attributes.length; i++) {
+                        if (attributes_value.attributes_id == attributes[i]['id']) {
+                            isi += `<option value="` + attributes[i]['id'] + `" selected>` + attributes[
+                                i][
+                                'name'
+                            ] + `</option>`
+                        } else {
+                            isi += `<option value="` + attributes[i]['id'] + `">` + attributes[i][
+                                'name'
+                            ] + `</option>`
+                        }
+                    }
+
+                    $('#modal-update-attributes-value').modal('show');
+                    $('#edtId').val(response.attributes_value.id);
+                    $('#edtName').val(response.attributes_value.name);
+                    $('#edtAttributesId').html(isi);
                 }
             })
         })
@@ -354,14 +409,16 @@
             var method = $("input[name='_method']").attr('value');
             var id = $('#edtId').val();
             var name = $('#edtName').val();
+            var attributes = $('#edtAttributesId').val();
 
-            var url = "{{ route('attributes.update', ':id') }}";
+            var url = "{{ route('attributes-value.update', ':id') }}";
             url = url.replace(':id', id);
 
             var fd = new FormData();
             fd.append("_method", method)
             fd.append("id", id);
             fd.append("name", name);
+            fd.append("attributes_id", attributes);
 
             $.ajaxSetup({
                 headers: {
@@ -371,7 +428,7 @@
 
             $.ajax({
                 url: url,
-                type: $('.attributes').attr('method'),
+                type: $('.attributes-value').attr('method'),
                 dataType: "JSON",
                 processData: false,
                 contentType: false,
@@ -386,7 +443,7 @@
                 },
                 success: function(response) {
                     if (response.status == 200) {
-                        $('#modal-update-attributes').modal('hide')
+                        $('#modal-update-attributes-value').modal('hide')
                         $.toast({
                             text: response.message,
                             icon: 'success',
@@ -395,8 +452,8 @@
                             position: 'top-right',
                             afterShown: function() {
                                 table.ajax.reload();
-                                $('.attributes')[0].reset();
-                                $('.attributes').find('.form-control').removeClass(
+                                $('.attributes-value')[0].reset();
+                                $('.attributes-value').find('.form-control').removeClass(
                                     'is-invalid');
                             },
                         });
@@ -414,11 +471,11 @@
             })
         })
 
-        // bulk delete category
+        // bulk delete attributes
         $(document).on("click", "#bulkDelete", function(e) {
             e.preventDefault();
 
-            var selected = $("#tableAttributes tbody .select-form:checked");
+            var selected = $("#tableAttributesValue tbody .select-form:checked");
             var id = [];
             // looping row selected
             $.each(selected, function(index, response) {
@@ -448,7 +505,7 @@
                             }
                         });
                         $.ajax({
-                            url: "{{ route('attributes.destroySelected') }}",
+                            url: "{{ route('attributes-value.destroySelected') }}",
                             type: "POST",
                             data: {
                                 id: id
@@ -485,7 +542,7 @@
             e.preventDefault();
 
             var id = $(this).attr("value");
-            var url = "{{ route('attributes.destroySoft', ':id') }}";
+            var url = "{{ route('attributes-value.destroySoft', ':id') }}";
             url = url.replace(':id', id);
 
 

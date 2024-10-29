@@ -72,7 +72,7 @@ class SubCategoryController extends Controller
             ]);
         } else {
             // validation is successful it is saved to the database
-            SubCategory::insert([
+            SubCategory::create([
                 'category_id' => $request->category_id,
                 'name' => $request->name,
                 'slug' => $request->slug,

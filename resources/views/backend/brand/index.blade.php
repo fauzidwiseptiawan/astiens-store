@@ -360,7 +360,6 @@
                         data: 'image',
                         searchable: false,
                         sortable: false,
-                        width: "20%"
                     },
                     {
                         data: 'name'
@@ -369,7 +368,7 @@
                         data: 'publish',
                         searchable: false,
                         sortable: false,
-                        width: "17%"
+                        width: "15%"
                     },
                     {
                         data: 'action',

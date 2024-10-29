@@ -88,7 +88,7 @@ class BrandController extends Controller
                 $resize_img->resize(300, 300)->save($file);
                 $file->storeAs($path_resize, $file_name, 'public');
                 // validation is successful it is saved to the database
-                Brand::insert([
+                Brand::create([
                     'name' => $request->name,
                     'slug' => $request->slug,
                     'image' => $file_name,

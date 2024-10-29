@@ -105,7 +105,7 @@
                 </div>
             </li>
             <li class="side-nav-item">
-                <a href="apps-kanban.html" class="side-nav-link">
+                <a href="{{ route('order.index') }}" class="side-nav-link">
                     <i class="ri-list-check-3"></i>
                     <span> Orders </span>
                 </a>

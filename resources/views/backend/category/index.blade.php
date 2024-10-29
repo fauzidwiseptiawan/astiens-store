@@ -20,11 +20,9 @@
         <!-- end page title -->
         <div class="card">
             <div class="card-body">
-                <div class="clearfix">
-                    <div class="float-start mt-1">
-                        <h4 class="m-0 d-print-none">All @yield('title')</h4>
-                    </div>
-                    <div class="float-end">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <h4 class="m-0 d-print-none">All @yield('title')</h4>
+                    <div class="mt-2">
                         <button type="button" class="btn btn-primary rounded-pill" data-bs-toggle="modal"
                             data-bs-target="#modal-add-category"><i class="ri-add-fill me-1"></i> <span>Add New
                                 @yield('title')</span> </button>

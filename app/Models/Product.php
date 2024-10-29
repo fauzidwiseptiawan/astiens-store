@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
-class AttributesValue extends Model
+class Product extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuid;
 
     public $incrementing = false;   // Menonaktifkan auto-increment
     public $timestamps = false;
     protected $keyType = 'string'; // Mengubah tipe kunci menjadi string
-    protected $table = 'attributes_value';
+    protected $table = 'product';
 
     protected $casts = [
         'created_at' => 'datetime:Y-m-d H:i:s',
@@ -21,9 +21,11 @@ class AttributesValue extends Model
         'deleted_at' => 'datetime:Y-m-d H:i:s',
     ];
     protected $fillable = [
-        'attributes_id',
         'name',
-        'code_color',
+        'slug',
+        'image',
+        'ext',
+        'size',
         'is_active',
         'is_deleted',
         'created_at',
@@ -33,9 +35,4 @@ class AttributesValue extends Model
         'deleted_at',
         'deleted_by',
     ];
-
-    public function attributes()
-    {
-        return $this->belongsTo(Attributes::class, 'attributes_id');
-    }
 }

@@ -47,17 +47,17 @@
 <link href="{{ asset('template/backend') }}/css/app.min.css" rel="stylesheet" type="text/css" id="app-style" />
 <!-- Icons css -->
 <link href="{{ asset('template/backend') }}/css/icons.min.css" rel="stylesheet" type="text/css" />
+<!-- Tagfy css -->
+<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
+<!-- Footable css -->
+<link rel="stylesheet" href="{{ asset('template/backend') }}/vendor/footable/css/footable.bootstrap.min.css">
 </head>
 
 <body>
     <!-- Pre-loader -->
     <div id="preloader">
         <div id="status">
-            <div class="bouncing-loader">
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
+            <div class="spinner-border text-primary m-2" role="status"></div>
         </div>
     </div>
     <!-- End Preloader-->
@@ -92,8 +92,6 @@
                         </div>
                         <div class="col-md-6">
                             <div class="text-md-end footer-links d-none d-md-block">
-                                <a href="javascript: void(0);">About</a>
-                                <a href="javascript: void(0);">Support</a>
                                 <a href="javascript: void(0);">Contact Us</a>
                             </div>
                         </div>
@@ -348,6 +346,13 @@
     <script src="{{ asset('template/backend') }}/vendor/jquery-toast-plugin/jquery.toast.min.js"></script>
     <!--  Select2 Plugin Js -->
     <script src="{{ asset('template/backend') }}/vendor/select2/js/select2.min.js"></script>
+    <!--  Money Format Plugin Js -->
+    <script src="{{ asset('template/backend') }}/js/money_format.js"></script>
+    <!--  Tagfy Plugin Js -->
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
+    <!--  footable Plugin Js -->
+    <script src="{{ asset('template/backend') }}/vendor/footable/js/footable.min.js"></script>
     <!-- Dashboard App js -->
     {{-- <script src="{{ asset('template/backend') }}/js/pages/demo.dashboard.js"></script> --}}
     <!-- App js -->

@@ -3,24 +3,26 @@
 namespace App\Http\Controllers\Backend\Product;
 
 use App\Http\Controllers\Controller;
+use App\Models\AttributesValue;
 use App\Models\Attributes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
-class AttributesController extends Controller
+class AttributesValueController extends Controller
 {
-    function index()
+    function index(Request $request)
     {
+        $uri = $request->query('id');;
         $attributes = Attributes::where('is_active', '1')->orderBy('name', 'ASC')->get();
-        return view('backend.attributes.index', compact('attributes'));
+        return view('backend.attributes.attributes_value.index', compact('attributes', 'uri'));
     }
 
-    function fetch()
+    function fetch($id)
     {
         // fetch attributes
-        $attributes = Attributes::where('is_deleted', '0')->orderBy('id', 'ASC')->get();
+        $attributes = AttributesValue::where('attributes_id', $id)->where('is_deleted', '0')->orderBy('id', 'ASC')->get();
         // display result datatable
         return datatables()
             ->of($attributes)
@@ -29,7 +31,7 @@ class AttributesController extends Controller
                 return '<input type="checkbox" class="form-check-input select-form" id="select" name="select" value="' . $attributes->id . '">';
             })
             ->addColumn('attributes', function ($attributes) {
-                return $attributes->name;
+                return $attributes->attributes->name;
             })
             ->addColumn('publish', function ($attributes) {
                 if ($attributes->is_active == 1) {
@@ -46,9 +48,6 @@ class AttributesController extends Controller
             })
             ->addColumn('action', function ($attributes) {
                 return ' <div class="d-flex flex-wrap gap-2">
-                            <a href="' . route('attributes-value.index', ['id' => $attributes->id]) . '">
-    						    <button type="button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="success-tooltip" data-bs-title="Value" class="btn btn-circle btn-soft-success btn-sm"><i class="ri-eye-fill"></i></button>
-                            </a>
     						<button type="button" id="show" value="' . $attributes->id . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="warning-tooltip" data-bs-title="Edit" class="btn btn-circle btn-soft-warning btn-sm"><i class="ri-pencil-fill"></i></button>
                             <button type="button" id="destroySoft" value="' . $attributes->id . '"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="danger-tooltip" data-bs-title="Delete" class="btn btn-circle btn-soft-danger btn-sm"><i class="ri-delete-bin-5-line"></i></button
     				</div>';
@@ -62,6 +61,7 @@ class AttributesController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
+                'attributes_id'  => 'required',
                 'name'         => 'required|unique:attributes',
             ],
         );
@@ -72,31 +72,34 @@ class AttributesController extends Controller
             ]);
         } else {
             // validation is successful it is saved to the database
-            Attributes::create([
+            AttributesValue::create([
+                'attributes_id' => $request->attributes_id,
                 'name'       => $request->name,
                 'created_by' =>  Auth::user()->id,
                 'created_at' =>  now(),
             ]);
             return response()->json([
                 'status'   => 200,
-                'message'  => 'Adding attributes data was successful!'
+                'message'  => 'Adding attributes value data was successful!'
             ]);
         }
     }
 
     function show($id)
     {
-        $attributes = Attributes::find($id);
+        $attributes_value = AttributesValue::find($id);
+        $attributes = Attributes::all();
         return response()->json([
             'status'       => 200,
             'message'      => 'Modal show!',
+            'attributes_value'     => $attributes_value,
             'attributes'     => $attributes
         ]);
     }
 
     function update(Request $request, $id)
     {
-        $attributes = Attributes::find($id);
+        $attributes = AttributesValue::find($id);
         $validator = Validator::make($request->all(), [
             'attributes_id'  => 'required',
             'name'           => 'required|unique:attributes,name,' . $attributes->id,
@@ -122,7 +125,7 @@ class AttributesController extends Controller
 
     function change_active(Request $request)
     {
-        $attributes = Attributes::find($request->id);
+        $attributes = AttributesValue::find($request->id);
         $attributes->update([
             'is_active' => $request->is_active,
             'updated_by' =>  Auth::user()->id,
@@ -136,7 +139,7 @@ class AttributesController extends Controller
     function destroy_selected(Request $request)
     {
         foreach ($request->id as $id) {
-            $attributes = Attributes::find($id);
+            $attributes = AttributesValue::find($id);
             $attributes->update([
                 'is_deleted' => '1',
                 'deleted_by' =>  Auth::user()->id,
@@ -151,7 +154,7 @@ class AttributesController extends Controller
 
     function destroy_soft($id)
     {
-        $attributes = Attributes::find($id);
+        $attributes = AttributesValue::find($id);
         $attributes->update([
             'is_deleted' => '1',
             'deleted_by' =>  Auth::user()->id,
