@@ -172,7 +172,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <small>This image is visible in all product box. Use 300x300 sizes image. Keep some blank
+                                <small>This image is visible in all product box. Use 600x600 sizes image. Keep some blank
                                     space around the main object of your image as we had to crop some edge in different
                                     devices to make it responsive.</small>
                             </div>
