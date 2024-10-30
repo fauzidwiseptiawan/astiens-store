@@ -52,7 +52,7 @@ input.slideon {
 }
 
 .slideon input:checked~.slideon-slider {
-    background-color: #007bff;
+    background-color: #3e60d5;
 }
 
 .slideon input:checked~.slideon-slider:before {

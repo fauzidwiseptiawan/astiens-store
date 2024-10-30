@@ -21,11 +21,37 @@ class Product extends Model
         'deleted_at' => 'datetime:Y-m-d H:i:s',
     ];
     protected $fillable = [
+        'item_code',
+        'categories_id',
+        'sub_categories_id',
+        'brand_id',
         'name',
-        'slug',
+        'slugs',
+        'unit',
+        'min_qty',
+        'max_qty',
+        'barcode',
         'image',
         'ext',
         'size',
+        'price',
+        'sku',
+        'stock',
+        'date',
+        'discount_start_date',
+        'discount_end_date',
+        'discount',
+        'short_desc',
+        'long_desc',
+        'tags',
+        'seo',
+        'seo_desc',
+        'new_arrival',
+        'best_seller',
+        'special_offer',
+        'hot',
+        'new',
+        'sale',
         'is_active',
         'is_deleted',
         'created_at',
@@ -35,4 +61,14 @@ class Product extends Model
         'deleted_at',
         'deleted_by',
     ];
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class);
+    }
 }

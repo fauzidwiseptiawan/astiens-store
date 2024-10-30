@@ -8,6 +8,14 @@
             overflow-y: auto;
             /* Tambahkan scrollbar jika konten lebih dari batas tinggi */
         }
+
+        @media (max-width: 992px) {
+
+            /* atau sesuai dengan breakpoint mobile */
+            .order-12 {
+                order: 12;
+            }
+        }
     </style>
 @endpush
 @section('content')
@@ -37,8 +45,8 @@
                     <div class="card-body">
                         <div class="col-lg-12">
                             <div class="mb-3">
-                                <label for="barcode" class="form-label">Item Code</label>
-                                <input type="text" id="itemCode" name="item_code" class="form-control" disabled>
+                                {{-- <label for="barcode" class="form-label">Item Code</label> --}}
+                                <input type="hidden" id="itemCode" name="item_code" class="form-control" disabled>
                             </div>
                         </div> <!-- end col -->
                         <div class="col-lg-12">
@@ -51,8 +59,8 @@
                         </div> <!-- end col -->
                         <div class="col-lg-12">
                             <div class="mb-3">
-                                <label for="barcode" class="form-label">Slugs</label>
-                                <input type="text" id="slugs" name="slugs" class="form-control" disabled>
+                                {{-- <label for="slugs" class="form-label">Slugs</label> --}}
+                                <input type="hidden" id="slugs" name="slugs" class="form-control" disabled>
                             </div>
                         </div> <!-- end col -->
                         <div class="col-lg-12">
@@ -94,7 +102,7 @@
                             <div class="mb-3">
                                 <label for="name" class="form-label">Maximum Order Quantity</label>
                                 <input type="number" id="maxQty" name="max_qty" class="form-control"
-                                    placeholder="Enter maximum order quantity" value="0">
+                                    placeholder="Enter maximum order quantity">
                                 <div id="errorMaxQty" class="invalid-feedback"></div>
                                 <small>Maximum quantity to place an order, if the value is 0, there is no limit.</small>
                             </div>
@@ -108,10 +116,15 @@
                     <div class="card-body">
                         <div class="col-lg-12">
                             <div class="mb-3">
-                                <label for="example-fileinput" class="form-label">Thumbnail Image <small>(300x300)</small>
+                                <label for="example-fileinput" class="form-label">Thumbnail Image</small>
                                     <strong class="text-danger">*</strong></label>
                                 <input type="file" id="image1" name="image" class="form-control">
                                 <div id="errorImage" class="invalid-feedback"></div>
+                                <div class="d-flex justify-content-center">
+                                    <div class="spinner-border mt-1" id="img1loading" role="status"
+                                        style="display:none;">
+                                    </div>
+                                </div>
                                 <div class="col-xxl-12 col-lg-12" id="thumbnail1">
                                     <div class="card mt-1 shadow-none border">
                                         <div class="p-1">
@@ -129,25 +142,31 @@
                                                 <div class="col-auto">
                                                     <button type="button" id="removeImage1"
                                                         class="btn btn-link fs-16 text-muted">
-                                                        <i class="ri-close-line"></i>
+                                                        <i class="ri-close-line text-danger"></i>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <small>This image is visible in all product box. Use 300x300 sizes image. Keep some blank
-                                    space around the main object of your image as we had to crop some edge in different
-                                    devices to make it responsive.</small>
+                                <small>This image is visible in all product box. Minimum dimensions required: 195px
+                                    width X
+                                    195px height. Keep some blank space around main object of your image as we had to
+                                    crop
+                                    some edge in different devices to make it responsive.</small>
                             </div>
                         </div>
                         <!-- end col -->
                         <div class="col-lg-12">
                             <div class="mb-3">
-                                <label for="example-fileinput" class="form-label">Gallery Images
-                                    <small>(600x600)</small></label>
-                                <input type="file" id="image2" name="image" class="form-control" multiple>
+                                <label for="example-fileinput" class="form-label">Gallery Images</label>
+                                <input type="file" id="image2" name="image2[]" class="form-control" multiple>
                                 <div id="errorImage" class="invalid-feedback"></div>
+                                <div class="d-flex justify-content-center">
+                                    <div class="spinner-border mt-1" id="img2loading" role="status"
+                                        style="display:none;">
+                                    </div>
+                                </div>
                                 <div class="col-xxl-12 col-lg-12" id="thumbnail2">
                                     <div class="card mt-1 shadow-none border">
                                         <div class="p-1">
@@ -165,16 +184,15 @@
                                                 <div class="col-auto">
                                                     <button type="button" id="removeImage2"
                                                         class="btn btn-link fs-16 text-muted">
-                                                        <i class="ri-close-line"></i>
+                                                        <i class="ri-close-line text-danger"></i>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <small>This image is visible in all product box. Use 600x600 sizes image. Keep some blank
-                                    space around the main object of your image as we had to crop some edge in different
-                                    devices to make it responsive.</small>
+                                <small>These images are visible in product details page gallery. Minimum dimensions
+                                    required: 900px width X 900px height.</small>
                             </div>
                             <div class="col-lg-12">
                                 <div class="mb-3">
@@ -200,12 +218,13 @@
                 <!-- product price -->
                 <div class="card">
                     <div class="card-header bg-light-subtle">
-                        <div class="row">
-                            <div class="col-6 col-md-8">
-                                <h5>Product price, stock</h5>
+                        <div class="row align-items-center">
+                            <div class="col-12 col-md-8 mb-2 mb-md-0">
+                                <h5 class="text-center text-md-start">Product price, stock</h5>
                             </div>
-                            <div class="col-6 col-md-4" style="text-align: end;">
-                                <label for="name" class="form-label ms-3 me-2">Variant Product </label>
+                            <div class="col-12 col-md-4 text-center text-md-end">
+                                <label for="name" class="form-label ms-3 me-2 d-block d-md-inline">Variant Product
+                                </label>
                                 <label class="slideon">
                                     <input type="checkbox" name="is_variant" value="1" id="isVariant">
                                     <span class="slideon-slider"></span>
@@ -213,6 +232,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="card-body" id="notVariant">
                         <div class="col-lg-12">
                             <div class="mb-3">
@@ -263,6 +283,9 @@
                             </div>
                         </div>
                         <!-- detail variant -->
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border" id="vloading" role="status" style="display:none;"></div>
+                        </div>
                         <div class="table-responsive mt-3" id="formDetailVariant">
                             <table class="table table-bordered display responsive nowrap detail-variant"
                                 id="detailVariant" width="100%">
@@ -304,19 +327,6 @@
             </div>
             <!-- row 2 -->
             <div class="col-xxl-4 col-xl-4 col-lg-4">
-                <!-- product publish -->
-                <div class="card">
-                    <h5 class="card-header bg-light-subtle">Publish</h5>
-                    <div class="card-body">
-                        <div class="col-lg-12">
-                            <button type="submit" class="btn btn-primary" id="addProduct"><i class="ri-save-line"></i>
-                                Save</button>
-                            <button type="button" class="btn btn-light"><i class="ri-logout-box-r-line"></i> Save &
-                                Exit</button>
-                        </div> <!-- end col -->
-                    </div>
-                    <!-- end card body-->
-                </div>
                 <!-- product status -->
                 <div class="card">
                     <h5 class="card-header bg-light-subtle">Product Status <strong class="text-danger">*</strong></h5>
@@ -356,7 +366,8 @@
                 </div>
                 <!-- product category -->
                 <div class="card">
-                    <h5 class="card-header bg-light-subtle">Product Category <strong class="text-danger">*</strong></h5>
+                    <h5 class="card-header bg-light-subtle">Product Category <strong class="text-danger">*</strong>
+                    </h5>
                     <div class="card-body">
                         <div class="col-lg-12">
                             <div class="mb-3">
@@ -384,17 +395,29 @@
                 </div>
                 <!-- is Feature -->
                 <div class="card">
-                    <h5 class="card-header bg-light-subtle">Is Feature?</h5>
-                    <div class="card-body">
-                        <div class="col-lg-12">
-                            <label class="slideon">
-                                <input type="checkbox" name="is_feature" value="1" id="isFeature">
-                                <span class="slideon-slider"></span>
-                            </label>
-                        </div> <!-- end col -->
+                    <div class="row gap-0">
+                        <div class="col-xxl-12 col-xl-6 col-lg-6 p-0">
+                            <h5 class="card-header bg-light-subtle">Is Feature?</h5>
+                            <div class="card-body">
+                                <label class="slideon">
+                                    <input type="checkbox" name="is_feature" value="1" id="isFeature">
+                                    <span class="slideon-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-xxl-12 col-xl-6 col-lg-6 p-0">
+                            <h5 class="card-header bg-light-subtle">Refundable</h5>
+                            <div class="card-body">
+                                <label class="slideon">
+                                    <input type="checkbox" name="is_refundable" value="1" id="isRefundable">
+                                    <span class="slideon-slider"></span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     <!-- end card body-->
                 </div>
+
                 <!-- product Tags -->
                 <div class="card">
                     <h5 class="card-header bg-light-subtle">Product Tags</h5>
@@ -436,7 +459,7 @@
                             <div class="mb-3">
                                 <label for="name" class="form-label">Discount Date Range </label>
                                 <input type="text" id="date" name="date" class="form-control"
-                                    placeholder="Enter discount date range">
+                                    placeholder="2018-10-03 to 2018-10-10">
                             </div>
                         </div> <!-- end col -->
                         <div class="col-lg-12">
@@ -494,6 +517,21 @@
                     </div>
                     <!-- end card body-->
                 </div>
+                <!-- product publish -->
+                <div class="card order-12 order-lg-0">
+                    <h5 class="card-header bg-light-subtle">Publish</h5>
+                    <div class="card-body">
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-primary" id="addProduct">
+                                <i class="ri-save-line"></i> Save
+                            </button>
+                            <button type="button" class="btn btn-light">
+                                <i class="ri-logout-box-r-line"></i> Save & Exit
+                            </button>
+                        </div> <!-- end col -->
+                    </div>
+                    <!-- end card body-->
+                </div>
             </div>
             <!-- end card -->
         </div>
@@ -504,6 +542,36 @@
     <script>
         // nav active
         $('#sidebarProduct, .activeProduct, #activeProduct').addClass('show menuitem-active');
+
+        $("#date").flatpickr({
+            mode: "range",
+            dateFormat: "Y-m-d", // Format tanggal yang diinginkan
+            // Opsi tambahan
+            locale: {
+                firstDayOfWeek: 1 // Mengatur hari pertama dalam minggu
+            }
+        });
+
+        // Tampilkan notifikasi error
+        function errorToast(message) {
+            $.toast({
+                text: message,
+                icon: 'error',
+                showHideTransition: 'plain',
+                hideAfter: 2000,
+                position: 'top-right',
+            });
+        }
+        // Tampilkan notifikasi
+        function successToast(message) {
+            $.toast({
+                text: message,
+                icon: 'success',
+                showHideTransition: 'plain',
+                hideAfter: 2000,
+                position: 'top-right',
+            });
+        }
 
         function initializeTinyMCE(selector, height) {
             tinymce.init({
@@ -558,15 +626,14 @@
         }
 
         // Inisialisasi TinyMCE dengan tinggi berbeda
-        initializeTinyMCE('#shortDesc', 200);
+        initializeTinyMCE('#shortDesc', 300);
         initializeTinyMCE('#longDesc', 500);
 
-
-
-        // preview image single and multiple image
+        // Inisialisasi upload single image and multiple image
         $(document).ready(function() {
-            // Inisialisasi thumbnail
+            // Inisialisasi thumbnail dan loading indicator
             $("#thumbnail1, #thumbnail2").hide(50);
+            $("#loading1, #loading2").hide();
 
             // Validasi file
             function validateFile(file) {
@@ -574,30 +641,20 @@
                 const maxSize = 2 * 1024 * 1024; // Maksimum 2 MB
 
                 if (!allowedTypes.includes(file.type)) {
-                    showToast("Hanya file JPEG, PNG, atau GIF yang diizinkan.");
+                    errorToast("Hanya file JPEG, PNG, atau GIF yang diizinkan.");
                     return false;
                 }
                 if (file.size > maxSize) {
-                    showToast("Ukuran file maksimal adalah 2 MB.");
+                    errorToast("Ukuran file maksimal adalah 2 MB.");
                     return false;
                 }
                 return true;
             }
 
-            // Tampilkan notifikasi
-            function showToast(message) {
-                $.toast({
-                    text: message,
-                    icon: 'error',
-                    showHideTransition: 'plain',
-                    hideAfter: 1500,
-                    position: 'top-right',
-                });
-            }
-
             // Fungsi untuk preview gambar
-            function handleImagePreview(input, thumbnailId, isSingle) {
+            function handleImagePreview(input, thumbnailId, isSingle, loadingId) {
                 const thumbnailContainer = $(thumbnailId).empty().show(50);
+                const loadingIndicator = $(loadingId).show();
                 const files = Array.from(input.files).filter(validateFile);
 
                 files.forEach(file => {
@@ -616,7 +673,7 @@
                                     </div>
                                     <div class="col-auto">
                                         <button type="button" class="btn btn-link fs-16 text-muted removeImage">
-                                            <i class="ri-close-line"></i>
+                                            <i class="ri-close-line text-danger"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -631,18 +688,24 @@
                             $('.file-format1').text(file.type.split('/').pop());
                             $('.file-size1').text((file.size / 1024).toFixed(2) + ' KB');
                         }
+
+                        loadingIndicator.hide(); // Sembunyikan loading indicator setelah selesai
                     };
                     reader.readAsDataURL(file);
                 });
 
-                if (files.length === 0) thumbnailContainer.hide(50);
+                if (files.length === 0) {
+                    thumbnailContainer.hide(50);
+                    loadingIndicator.hide();
+                }
             }
 
             // Event listener untuk perubahan pada input file
             $('#image1, #image2').change(function(e) {
                 e.preventDefault();
                 const isSingle = this.id === 'image1';
-                handleImagePreview(this, isSingle ? "#thumbnail1" : "#thumbnail2", isSingle);
+                handleImagePreview(this, isSingle ? "#thumbnail1" : "#thumbnail2", isSingle, isSingle ?
+                    "#loading1" : "#loading2");
             });
 
             // Hapus gambar dari thumbnail
@@ -651,18 +714,22 @@
                 const thumbnailContainer = card.parent();
                 if (thumbnailContainer.children().length === 0) {
                     thumbnailContainer.hide(50);
-                    if (thumbnailContainer.is('#thumbnail2')) $('#image2').val('');
+                    if (thumbnailContainer.is('#thumbnail2')) $('#image2').val(
+                        ''); // Reset value untuk multiple image
                 }
             });
 
-            // Hapus gambar dari upload tunggal
+            // Hapus gambar dan kosongkan form terkait pada upload tunggal
             $('#removeImage1').click(function(e) {
                 e.preventDefault();
                 $("#thumbnail1").hide(50);
-                $('#image1').val('');
+                $('#image1').val(''); // Reset value untuk single image
+                $('#imagePreview1').attr('src', ''); // Hapus preview gambar
+                $('.file-name1').text(''); // Kosongkan nama file
+                $('.file-format1').text(''); // Kosongkan format file
+                $('.file-size1').text(''); // Kosongkan ukuran file
             });
         });
-
 
         // Select option
         $(document).ready(function() {
@@ -671,7 +738,7 @@
             selectElements.forEach(function(selector) {
                 $(selector).select2({
                     placeholder: `Select ${selector.replace('.', '').replace(/([A-Z])/g, ' $1').trim()}`,
-                    allowClear: false
+                    allowClear: false,
                 });
             });
         });
@@ -761,19 +828,23 @@
                     const url = "{{ route('product.getValue', ':id') }}".replace(':id', id);
                     const existingValues = $(`#choiseAttributes${id}`).val() || [];
 
-                    // Menambahkan elemen HTML untuk setiap atribut yang dipilih
-                    $('.value-attributes').append(`
-                        <div class="row mt-2" id="attribute-row-${id}">
+                    // Menambahkan elemen HTML untuk setiap atribut yang dipilih dengan animasi
+                    const $attributeRow = $(`
+                        <div class="row mt-2" id="attribute-row-${id}" style="display: none;">
                             <div class="col-lg-3">
                                 <input type="text" class="form-control" value="${text}" disabled>
                             </div>
                             <div class="col-lg-9">
-                                <select class="form-control attributes${id} attributes_choise" name="choise_attributes[]" id="choiseAttributes${id}" multiple="multiple">
+                                <select class="form-control attributes${id} attributes_choise" id="choiseAttributes${id}" multiple="multiple">
                                     <option></option>
                                 </select>
                             </div>
                         </div>
                     `);
+
+                    // Append elemen dan tampilkan dengan animasi show
+                    $('.value-attributes').append($attributeRow);
+                    $attributeRow.show(300);
 
                     // Inisialisasi AJAX dan Select2
                     $.get(url, function(response) {
@@ -820,6 +891,9 @@
                 }
             });
 
+            // Tampilkan spinner saat permintaan dimulai
+            $("#vloading").show();
+
             // Kirim permintaan untuk membuat varian
             $.post("{{ route('product.createVariants') }}", {
                     attributes: allSelectedAttributes,
@@ -827,11 +901,16 @@
                 })
                 .done(function(variants) {
                     if (Array.isArray(variants)) {
+                        $("#vloading").hide();
                         updateVariantTable(variants);
                     }
                 })
                 .fail(function(xhr) {
                     alert(xhr.responseJSON);
+                })
+                .always(function() {
+                    // Sembunyikan spinner setelah permintaan selesai (baik sukses atau gagal)
+                    $("#vloading").hide();
                 });
         });
 
@@ -865,7 +944,7 @@
                     uniqueCombinations.add(variantText);
                     table.row.add([
                         `<span class="badge badge-outline-primary expand-row" data-index="${index}" style="cursor: pointer;"><i class="ri-add-line"></i></span> ${variantText}`,
-                        '<input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price">',
+                        `<input type="hidden" class="form-control" value="${variantText}" name="variant_attributes[]" placeholder="Price"> <input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price">`,
                         '',
                         ''
                     ]);
@@ -917,6 +996,10 @@
 
         // Membuat konten untuk baris anak
         function createChildRowContent(index) {
+            const fileName = variantData[index] && variantData[index].fileName ? variantData[index].fileName : '';
+            const fileFormat = variantData[index] && variantData[index].fileFormat ? variantData[index].fileFormat : '';
+            const fileSize = variantData[index] && variantData[index].fileSize ? variantData[index].fileSize : '';
+
             return `
             <div class="child-row" style="height: auto; overflow-y: auto;">
                 <div class="row mb-3">
@@ -928,13 +1011,13 @@
                 <div class="row mb-3">
                     <label for="sku" class="col-2 col-form-label">Sku</label>
                     <div class="col-10">
-                        <input type="text" class="form-control" name="sku[]" placeholder="SKU Product" value="${variantData[index] ? variantData[index].sku : ''}">
+                        <input type="text" class="form-control" name="variant_sku[]" placeholder="SKU Product" value="${variantData[index] ? variantData[index].sku : ''}">
                     </div>
                 </div>
                 <div class="row mb-3">
                     <label for="image" class="col-2 col-form-label">Image</label>
                     <div class="col-10">
-                        <input type="file" id="image_${index}" name="image[]" class="form-control">
+                        <input type="file" id="image_${index}" name="variant_image[]" class="form-control">
                         <div id="errorImage_${index}" class="invalid-feedback"></div>
                         <div class="col-xxl-12 col-lg-12" id="thumbnail_${index}" style="display: ${variantData[index] && variantData[index].image ? 'block' : 'none'};">
                             <div class="card mt-1 shadow-none border">
@@ -944,13 +1027,18 @@
                                             <img id="imagePreview_${index}" src="${variantData[index] && variantData[index].image ? variantData[index].image : 'https://via.placeholder.com/150?text=No+Image'}" alt="image" class="avatar-sm rounded bg-light" />
                                         </div>
                                         <div class="col ps-0">
-                                            <a class="text-muted fw-bold file-name_${index}">${variantData[index] && variantData[index].fileName ? variantData[index].fileName : ''}</a>
-                                            <a class="text-muted fw-bold file-format_${index}">${variantData[index] && variantData[index].fileFormat ? variantData[index].fileFormat : ''}</a>
-                                            <p class="mb-0 file-size_${index}">${variantData[index] && variantData[index].fileSize ? variantData[index].fileSize : ''}</p>
+                                            <a class="text-muted fw-bold file-name_${index}">${fileName}</a>
+                                            <input type="text" name="file_name[]" value="${fileName}" class="form-control mt-1 file-name-input_${index}" />
+
+                                            <a class="text-muted fw-bold file-format_${index}">${fileFormat}</a>
+                                            <input type="text" name="file_format[]" value="${fileFormat}" class="form-control mt-1 file-format-input_${index}" />
+
+                                            <p class="mb-0 file-size_${index}">${fileSize}</p>
+                                            <input type="text" name="file_size[]" value="${fileSize}" class="form-control mt-1 file-size-input_${index}" />
                                         </div>
                                         <div class="col-auto">
                                             <button type="button" class="btn btn-link fs-16 text-muted removeImage" data-index="${index}">
-                                                <i class="ri-close-line"></i>
+                                                <i class="ri-close-line text-danger"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -961,6 +1049,7 @@
                 </div>
             </div>`;
         }
+
 
         // Membuat validasi upload image dan input image
         function handleImagePreview(index) {
@@ -992,13 +1081,16 @@
                         $(`#thumbnail_${index}`).show();
                         $(`.file-name_${index}`).text(file.name.length > 5 ? file.name.substr(0, 5) + '.. ' :
                             file.name);
+                        $(`.file-name-input_${index}`).val(file.name);
                         $(`.file-format_${index}`).text(file.type.split('/').pop());
+                        $(`.file-format-input_${index}`).val(file.type.split('/').pop());
                         $(`.file-size_${index}`).text((file.size / 1024).toFixed(2) + ' KB');
+                        $(`.file-size-input_${index}`).val(file.size);
 
                         // Simpan data file
                         variantData[index] = {
                             stock: $(`input[name="variant_stock[]"]`).val(),
-                            sku: $(`input[name="sku[]"]`).val(),
+                            sku: $(`input[name="variant_sku[]"]`).val(),
                             image: previewImage,
                             fileName: file.name,
                             fileFormat: file.type.split('/').pop(),
@@ -1017,6 +1109,7 @@
             $(`#imagePreview_${index}`).attr('src', 'https://via.placeholder.com/150?text=No+Image');
             $(`#thumbnail_${index}`).hide();
             $(`.file-name_${index}, .file-format_${index}, .file-size_${index}`).text('');
+            $(`.file-name-input_${index}, .file-format-input_${index}, .file-size-input_${index}`).val('');
 
             if (variantData[index]) {
                 variantData[index].image = null;
@@ -1033,6 +1126,7 @@
             $(`#imagePreview_${index}`).attr('src', 'https://via.placeholder.com/150?text=No+Image');
             $(`#thumbnail_${index}`).hide();
             $(`.file-name_${index}, .file-format_${index}, .file-size_${index}`).text('');
+            $(`.file-name-input_${index}, .file-format-input_${index}, .file-size-input_${index}`).val('');
 
             // Reset data
             if (variantData[index]) {
@@ -1042,5 +1136,211 @@
                 variantData[index].fileSize = '';
             }
         });
+
+
+        // store product at database
+        $(document).on("click", "#addProduct", function(e) {
+            let slugs = $('#slugs').val();
+            let itemCode = $('#itemCode').val();
+            let barcode = $('#barcode').val();
+            let name = $('#name').val();
+            let unit = $('#unit').val();
+            let minQty = $('#minQty').val();
+            let maxQty = $('#maxQty').val();
+            let image = $('#image1')[0].files[0];
+            let validationImage = $('input[name="image"]').val().split('\\').pop();
+            let isVarinat = $('#is_variant').val();
+            let price = $('#price').val();
+            let sku = $('#sku').val();
+            let stock = $('#stock').val();
+            let attributesId = $('#attributesId').val();
+            let valuesId = $('#valuesId').val();
+            let shortDesc = tinymce.get("shortDesc").getContent();
+            let longDesc = tinymce.get("longDesc").getContent();
+            let isActive = $('#isActive').val();
+            let brandId = $('#brandId').val();
+            let categoryId = $('#categoryId').val();
+            let subCategoryId = $('#subCategoryId').val();
+            let isFeature = $('#isFeature').is(':checked') ? '1' : '0';
+            let isVariant = $('#isVariant').is(':checked') ? '1' : '0';
+            let tags = $('#tags').val();
+            let seo = $('#seo').val();
+            let seoDesc = $('#seoDesc').val();
+            let date = $('#date').val();
+            let discount = $('#discount').val();
+            let newArrival = $('#newArrival').is(':checked') ? '1' : '0';
+            let bestSeller = $('#bestSeller').is(':checked') ? '1' : '0';
+            let specialOffer = $('#specialOffer').is(':checked') ? '1' : '0';
+            let hot = $('#hot').is(':checked') ? '1' : '0';
+            let newLabel = $('#new').is(':checked') ? '1' : '0';
+            let sale = $('#newArrival').is(':checked') ? '1' : '0';
+
+            // Mengambil gambar-gambar dari input multiple
+            let multipleImage = $('#image2')[0].files;
+
+
+            // Hanya lakukan validasi jika isVariant dicentang
+            if (isVariant === '1') {
+                let variantAttributes = $('input[name="variant_attributes[]"]');
+                if (variantAttributes.length === 0 || variantAttributes.filter((_, el) => $(el).val() === '')
+                    .length > 0) {
+                    errorToast("Silakan isi semua varian atribut.");
+                    return;
+                }
+
+                let variantPrices = $('input[name="variant_price[]"]');
+                if (variantPrices.length === 0 || variantPrices.filter((_, el) => $(el).val() === '').length > 0) {
+                    errorToast("Silakan isi semua harga varian.");
+                    return;
+                }
+
+                let variantStocks = $('input[name="variant_stock[]"]');
+                if (variantStocks.length === 0 || variantStocks.filter((_, el) => $(el).val() === '').length > 0) {
+                    errorToast("Silakan isi semua stok varian.");
+                    return;
+                }
+            }
+
+            const fd = new FormData();
+
+            for (let i = 0; i < multipleImage.length; i++) {
+                fd.append('image2[]', multipleImage[
+                    i]); // Menggunakan 'images[]' agar dapat diolah sebagai array di server
+            }
+
+            // array push kehadiran
+            $('select[name^="choice_attributes"]').each(function(index) {
+                $(this).find(':selected').each(function() {
+                    // Menambahkan setiap pilihan yang dipilih ke dalam FormData
+                    fd.append(`choice_attributes[${index}][]`, $(this).text());
+                });
+            });
+            $('select[name="choice_attributes[]"]').each(function() {
+                fd.append("choice_attributes[${index}][]", $(this).find(":selected").text());
+            });
+            $('input[name="variant_attributes[]"]').each(function() {
+                fd.append("variant_attributes[]", $(this).val());
+            });
+            $('input[name="variant_price[]"]').each(function() {
+                fd.append("variant_price[]", $(this).val());
+            });
+            $('input[name="variant_stock[]"]').each(function() {
+                fd.append("variant_stock[]", $(this).val());
+            });
+            $('input[name="variant_sku[]"]').each(function() {
+                fd.append("variant_sku[]", $(this).val());
+            });
+            $('input[name="variant_image[]"]').each(function() {
+                fd.append("variant_image[]", $(this)[0].files[0]);
+            });
+            $('input[name="file_name[]"]').each(function() {
+                fd.append("file_name[]", $(this).val());
+            });
+            $('input[name="file_format[]"]').each(function() {
+                fd.append("file_format[]", $(this).val());
+            });
+            $('input[name="file_size[]"]').each(function() {
+                fd.append("file_size[]", $(this).val());
+            });
+            fd.append("item_code", itemCode);
+            fd.append("slugs", slugs);
+            fd.append("barcode", barcode);
+            fd.append("name", name);
+            fd.append("category_id", categoryId);
+            fd.append("sub_category_id", subCategoryId);
+            fd.append("brand_id", brandId);
+            fd.append("unit", unit);
+            fd.append("min_qty", minQty);
+            fd.append("max_qty", maxQty);
+            fd.append("price", price);
+            fd.append("sku", sku);
+            fd.append("stock", stock);
+            fd.append("discount_range", date);
+            fd.append("discount", discount);
+            fd.append("short_desc", shortDesc);
+            fd.append("long_desc", longDesc);
+            if (tags == '') {
+                fd.append("tags", tags);
+            } else {
+                let convert = JSON.parse(tags)
+                fd.append('tags', convert.map(item => item.value).toString())
+            }
+            fd.append("seo", seo);
+            fd.append("seo_desc", seoDesc);
+            fd.append("image", image);
+            fd.append("new_arrival", newArrival);
+            fd.append("best_seller", bestSeller);
+            fd.append("special_offer", specialOffer);
+            fd.append("hot", hot);
+            fd.append("new", newLabel);
+            fd.append("sale", sale);
+            fd.append("is_active", isActive);
+            fd.append("is_variant", isVariant);
+            fd.append("is_feature", isFeature);
+            fd.append("validation_image", validationImage);
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            // Kirim FormData menggunakan AJAX
+            $.ajax({
+                url: "{{ route('product.store') }}",
+                type: "POST",
+                dataType: "JSON",
+                contentType: false,
+                processData: false,
+                data: fd,
+                beforeSend: function() {
+                    $('#addProduct').attr('disabled', 'disabled');
+                    $('#addProduct').html('<i class="ri-loader-4-line"></i>');
+                },
+                complete: function() {
+                    $('#addProduct').removeAttr('disabled');
+                    $('#addProduct').html('<i class="ri-save-line"></i> Save');
+                },
+                success: function(response) {
+                    if (response.status == 200) {
+                        // console.log('object')
+                    } else {
+                        const fieldsWithErrors = ['name', 'unit', 'minQty', 'maxQty', 'stock',
+                            'longDesc', 'brandId', 'categoryId', 'subCategoryId'
+                        ];
+                        fieldsWithErrors.forEach(field => {
+                            if (response.message[field]) {
+                                $(`#${field}`).addClass('is-invalid');
+                                $(`#error${field.charAt(0).toUpperCase() + field.slice(1)}`)
+                                    .html(response.message[field]);
+                            } else {
+                                $(`#${field}`).removeClass('is-invalid').val('');
+                                $(`#error${field.charAt(0).toUpperCase() + field.slice(1)}`)
+                                    .html('');
+                            }
+                        });
+                    }
+
+                },
+                error: function(xhr, status, error) {
+                    // Tangani error
+                    let errorMessage;
+
+                    try {
+                        // Coba parse response JSON
+                        const jsonResponse = JSON.parse(xhr.responseText);
+                        errorMessage = jsonResponse.message || "Terjadi kesalahan.";
+                    } catch (e) {
+                        errorMessage = "Terjadi kesalahan. Silakan coba lagi.";
+                    }
+
+                    Swal.fire({
+                        icon: "error",
+                        title: status,
+                        text: errorMessage,
+                    });
+                }
+            });
+        })
     </script>
 @endpush

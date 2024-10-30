@@ -13,30 +13,30 @@ return new class extends Migration
     {
         Schema::create('product', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('category_id');
-            $table->uuid('sub_category_id');
-            $table->uuid('brand_id');
-            $table->string('item_code');
-            $table->string('name');
-            $table->string('slugs');
-            $table->string('unit');
-            $table->integer('min_qty');
-            $table->integer('max_qty');
+            $table->uuid('category_id')->nullable();
+            $table->uuid('sub_category_id')->nullable();
+            $table->uuid('brand_id')->nullable();
+            $table->string('item_code')->nullable();
+            $table->string('name')->nullable();
+            $table->string('slugs')->nullable();
+            $table->string('unit')->nullable();
+            $table->integer('min_qty')->nullable();
+            $table->integer('max_qty')->nullable();
             $table->string('barcode')->nullable();
             $table->text('image')->nullable();
             $table->string('ext')->nullable();
             $table->string('size')->nullable();
-            $table->decimal('price', 10, 2)->default(0);
-            $table->string('sku');
-            $table->string('stock');
-            $table->date('discount_start_date'); // Tanggal mulai diskon
-            $table->date('discount_end_date');   // Tanggal berakhir diskon
-            $table->decimal('discount', 5, 2); // Nilai diskon, contoh: 10.50%
-            $table->longText('short_desc');
-            $table->longText('long_desc');
-            $table->text('tags');
-            $table->string('seo_title');
-            $table->string('seo_desc');
+            $table->integer('price')->default(0)->nullable();
+            $table->string('sku')->nullable();
+            $table->string('stock')->nullable();
+            $table->date('discount_start_date')->nullable(); // Tanggal mulai diskon
+            $table->date('discount_end_date')->nullable();  // Tanggal berakhir diskon
+            $table->decimal('discount', 5, 2)->nullable(); // Nilai diskon, contoh: 10.50%
+            $table->longText('short_desc')->nullable();
+            $table->longText('long_desc')->nullable();
+            $table->text('tags')->nullable();
+            $table->string('seo_title')->nullable();
+            $table->string('seo_desc')->nullable();
             $table->enum('new_arrival', [0, 1])->default(0);
             $table->enum('best_seller', [0, 1])->default(0);
             $table->enum('special_offer', [0, 1])->default(0);

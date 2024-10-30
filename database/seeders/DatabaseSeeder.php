@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
             BrandSeeder::class,
             CategorySeeder::class,
             SubCategorySeeder::class,
+            AttributesSeeder::class,
+            AttributesValueSeeder::class,
         ]);
     }
 }

@@ -34,23 +34,24 @@
         rel="stylesheet" type="text/css" />
     <link href="{{ asset('template/backend') }}/vendor/datatables.net-select-bs5/css/select.bootstrap5.min.css"
         rel="stylesheet" type="text/css" />
-</head>
-<!-- sweetalert2 -->
-<link rel="stylesheet" href="{{ asset('template/backend') }}/vendor/sweetalert2/dist/sweetalert2.min.css">
-<link rel="stylesheet" href="{{ asset('template/backend') }}/vendor/animate.css/animate.min.css">
-<!-- Vector Map css -->
-<link rel="stylesheet"
-    href="{{ asset('template/backend') }}/vendor/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.css">
-<!-- Theme Config Js -->
-<script src="{{ asset('template/backend') }}/js/config.js"></script>
-<!-- App css -->
-<link href="{{ asset('template/backend') }}/css/app.min.css" rel="stylesheet" type="text/css" id="app-style" />
-<!-- Icons css -->
-<link href="{{ asset('template/backend') }}/css/icons.min.css" rel="stylesheet" type="text/css" />
-<!-- Tagfy css -->
-<link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
-<!-- Footable css -->
-<link rel="stylesheet" href="{{ asset('template/backend') }}/vendor/footable/css/footable.bootstrap.min.css">
+    <!-- Flatpickr Timepicker css -->
+    <link href="{{ asset('template/backend') }}/vendor/flatpickr/flatpickr.min.css" rel="stylesheet" type="text/css" />
+    <!-- sweetalert2 -->
+    <link rel="stylesheet" href="{{ asset('template/backend') }}/vendor/sweetalert2/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="{{ asset('template/backend') }}/vendor/animate.css/animate.min.css">
+    <!-- Vector Map css -->
+    <link rel="stylesheet"
+        href="{{ asset('template/backend') }}/vendor/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.css">
+    <!-- Theme Config Js -->
+    <script src="{{ asset('template/backend') }}/js/config.js"></script>
+    <!-- App css -->
+    <link href="{{ asset('template/backend') }}/css/app.min.css" rel="stylesheet" type="text/css" id="app-style" />
+    <!-- Icons css -->
+    <link href="{{ asset('template/backend') }}/css/icons.min.css" rel="stylesheet" type="text/css" />
+    <!-- Tagfy css -->
+    <link href="{{ asset('template/backend') }}/vendor/tagify/tagify.css" rel="stylesheet" type="text/css" />
+    <!-- Footable css -->
+    <link rel="stylesheet" href="{{ asset('template/backend') }}/vendor/footable/css/footable.bootstrap.min.css">
 </head>
 
 <body>
@@ -355,6 +356,8 @@
     <script src="{{ asset('template/backend') }}/vendor/footable/js/footable.min.js"></script>
     <!-- Tinymce -->
     <script src="{{ asset('template/backend') }}/vendor/tinymce/tinymce.min.js"></script>
+    <!-- Flatpickr Timepicker Plugin js -->
+    <script src="{{ asset('template/backend') }}/vendor/flatpickr/flatpickr.min.js"></script>
     <!-- Dashboard App js -->
     {{-- <script src="{{ asset('template/backend') }}/js/pages/demo.dashboard.js"></script> --}}
     <!-- App js -->
