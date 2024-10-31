@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Attributes;
+use App\Models\AttributesValue;
 use Illuminate\Database\Seeder;
 
 class AttributesSeeder extends Seeder
@@ -12,25 +13,34 @@ class AttributesSeeder extends Seeder
      */
     public function run(): void
     {
-        $attributeNames = [
-            'Color',
-            'Size',
-            'Material',
+        $attributes = [
+            [
+                "name" => "Color",
+                "values" => ["Red", "Blue", "Green", "Yellow"]
+            ],
+            [
+                "name" => "Size",
+                "values" => ["S", "M", "L", "XL", "XXL"]
+            ],
+            [
+                "name" => "Material",
+                "values" => ["Cotton", "Polyester", "Wool"]
+            ]
         ];
 
-        // Generate 10 sample categories
-        foreach ($attributeNames as $name) {
-            Attributes::create([
-                'name' => $name,
+        foreach ($attributes as $attribute) {
+            // Insert attribute to `attributes` table
+            $newAttribute = Attributes::create([
+                'name' => $attribute["name"]
             ]);
+
+            // Insert each value to `attribute_values` table
+            foreach ($attribute["values"] as $value) {
+                AttributesValue::create([
+                    'attributes_id' => $newAttribute->id,
+                    'name' => $value
+                ]);
+            }
         }
-
-
-        // // Generate 10 sample categories
-        // for ($i = 1; $i <= 10; $i++) {
-        //     Attributes::create([
-        //         'name' => $faker->words(2, true), // Random 2-word name
-        //     ]);
-        // }
     }
 }

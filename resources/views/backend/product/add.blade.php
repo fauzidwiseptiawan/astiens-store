@@ -16,6 +16,23 @@
                 order: 12;
             }
         }
+
+        /* Mengatur gaya untuk Select2 saat is-invalid */
+        .select2-container--default.is-invalid .select2-selection--single {
+            border: 1px solid red;
+            /* Warna border merah untuk menandakan kesalahan */
+            border-radius: 0.25rem;
+            /* Menyesuaikan radius border */
+            background-color: #fff;
+            /* Warna latar belakang putih */
+        }
+
+
+        /* Mengatur gaya dropdown saat is-invalid */
+        .select2-container--default.is-invalid .select2-selection--single .select2-selection__arrow b {
+            border-color: red transparent transparent transparent;
+            /* Mengatur warna panah dropdown */
+        }
     </style>
 @endpush
 @section('content')
@@ -68,6 +85,7 @@
                                 <label for="barcode" class="form-label">Barcode</label>
                                 <input type="text" id="barcode" name="barcode" class="form-control"
                                     placeholder="Enter barcode">
+                                <div id="errorBarcode" class="invalid-feedback"></div>
                             </div>
                         </div> <!-- end col -->
                         <div class="col-lg-12">
@@ -93,7 +111,7 @@
                             <div class="mb-3">
                                 <label for="name" class="form-label">Minimum Order Quantity</label>
                                 <input type="number" id="minQty" name="min_qty" class="form-control"
-                                    placeholder="Enter minimum order quantity" value="0">
+                                    placeholder="Enter minimum order quantity">
                                 <div id="errorMinQty" class="invalid-feedback"></div>
                                 <small>Minimum quantity to place an order, if the value is 0, there is no limit.</small>
                             </div>
@@ -119,7 +137,7 @@
                                 <label for="example-fileinput" class="form-label">Thumbnail Image</small>
                                     <strong class="text-danger">*</strong></label>
                                 <input type="file" id="image1" name="image" class="form-control">
-                                <div id="errorImage" class="invalid-feedback"></div>
+                                <div id="errorImage1" class="invalid-feedback"></div>
                                 <div class="d-flex justify-content-center">
                                     <div class="spinner-border mt-1" id="img1loading" role="status"
                                         style="display:none;">
@@ -234,33 +252,35 @@
                     </div>
 
                     <div class="card-body" id="notVariant">
-                        <div class="col-lg-12">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Regular price <strong
-                                        class="text-danger">*</strong></label>
-                                <input type="text" id="price" name="price" class="form-control"
-                                    placeholder="Enter regular price" onkeyup="money_format(this)">
-                                <div id="errorPrice" class="invalid-feedback"></div>
-                            </div>
-                        </div> <!-- end col -->
-                        <div class="col-lg-12">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">SKU <strong
-                                        class="text-danger">*</strong></label>
-                                <input type="text" id="sku" name="sku" class="form-control"
-                                    placeholder="Enter SKU">
-                                <div id="errorSku" class="invalid-feedback"></div>
-                            </div>
-                        </div> <!-- end col -->
-                        <div class="col-lg-12">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Stock <strong
-                                        class="text-danger">*</strong></label>
-                                <input type="number" id="stock" name="stock" class="form-control"
-                                    placeholder="Enter stock">
-                                <div id="errorStock" class="invalid-feedback"></div>
-                            </div>
-                        </div> <!-- end col -->
+                        <form class="reset-not-variant-form">
+                            <div class="col-lg-12">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Regular price <strong
+                                            class="text-danger">*</strong></label>
+                                    <input type="text" id="price" name="price" class="form-control"
+                                        placeholder="Enter regular price" onkeyup="money_format(this)">
+                                    <div id="errorPrice" class="invalid-feedback"></div>
+                                </div>
+                            </div> <!-- end col -->
+                            <div class="col-lg-12">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">SKU <strong
+                                            class="text-danger">*</strong></label>
+                                    <input type="text" id="sku" name="sku" class="form-control"
+                                        placeholder="Enter SKU">
+                                    <div id="errorSku" class="invalid-feedback"></div>
+                                </div>
+                            </div> <!-- end col -->
+                            <div class="col-lg-12">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Stock <strong
+                                            class="text-danger">*</strong></label>
+                                    <input type="number" id="stock" name="stock" class="form-control"
+                                        placeholder="Enter stock">
+                                    <div id="errorStock" class="invalid-feedback"></div>
+                                </div>
+                            </div> <!-- end col -->
+                        </form>
                     </div>
                     <div class="card-body" id="variant">
                         <div class="row">
@@ -287,16 +307,18 @@
                             <div class="spinner-border" id="vloading" role="status" style="display:none;"></div>
                         </div>
                         <div class="table-responsive mt-3" id="formDetailVariant">
-                            <table class="table table-bordered display responsive nowrap detail-variant"
-                                id="detailVariant" width="100%">
-                                <thead>
-                                    <tr>
-                                        <th width="30%">Variant</th>
-                                        <th>Variant Price</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody"></tbody>
-                            </table>
+                            <form class="reset-variant-form">
+                                <table class="table table-bordered display responsive nowrap detail-variant"
+                                    id="detailVariant" width="100%">
+                                    <thead>
+                                        <tr>
+                                            <th width="30%">Variant</th>
+                                            <th>Variant Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody"></tbody>
+                                </table>
+                            </form>
                         </div>
                         <!-- end table-responsive-->
                     </div>
@@ -308,9 +330,9 @@
                     <div class="card-body">
                         <div class="col-lg-12">
                             <div class="mb-3">
-                                <label for="name" class="form-label">Short Description <strong
-                                        class="text-danger">*</strong></label>
+                                <label for="name" class="form-label">Short Description</label>
                                 <textarea name="short_desc" class="form-control" id="shortDesc" placeholder="Short Description"></textarea>
+                                <div id="errorShortDesc" class="invalid-feedback"></div>
                             </div>
                         </div> <!-- end col -->
                         <div class="col-lg-12">
@@ -318,6 +340,7 @@
                                 <label for="name" class="form-label">Description <strong
                                         class="text-danger">*</strong></label>
                                 <textarea name="long_desc" class="form-control" id="longDesc" placeholder="Short Description"></textarea>
+                                <div id="errorLongDesc" class="invalid-feedback"></div>
                             </div>
                         </div>
                     </div> <!-- end col -->
@@ -395,8 +418,8 @@
                 </div>
                 <!-- is Feature -->
                 <div class="card">
-                    <div class="row gap-0">
-                        <div class="col-xxl-12 col-xl-6 col-lg-6 p-0">
+                    <div class="row">
+                        <div class="col-6 col-sm-6 col-md-6">
                             <h5 class="card-header bg-light-subtle">Is Feature?</h5>
                             <div class="card-body">
                                 <label class="slideon">
@@ -405,11 +428,11 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="col-xxl-12 col-xl-6 col-lg-6 p-0">
+                        <div class="col-6 col-sm-6 col-md-6">
                             <h5 class="card-header bg-light-subtle">Refundable</h5>
                             <div class="card-body">
                                 <label class="slideon">
-                                    <input type="checkbox" name="is_refundable" value="1" id="isRefundable">
+                                    <input type="checkbox" name="refundable" value="0" id="refundable">
                                     <span class="slideon-slider"></span>
                                 </label>
                             </div>
@@ -420,12 +443,13 @@
 
                 <!-- product Tags -->
                 <div class="card">
-                    <h5 class="card-header bg-light-subtle">Product Tags</h5>
+                    <h5 class="card-header bg-light-subtle">Product Tags <strong class="text-danger">*</strong></h5>
                     <div class="card-body">
                         <div class="col-lg-12">
                             <div class="mb-3">
                                 <input type="text" id="tags" name="tags" class="form-control tags"
                                     placeholder="Enter tags">
+                                <div id="errorTags" class="invalid-feedback"></div>
                             </div>
                         </div> <!-- end col -->
                     </div>
@@ -440,12 +464,14 @@
                                 <label for="seo" class="form-label">SEO Title</label>
                                 <input type="text" id="seo" name="seo" class="form-control"
                                     placeholder="Enter SEO">
+                                <div id="errorSeo" class="invalid-feedback"></div>
                             </div>
                         </div> <!-- end col -->
                         <div class="col-lg-12">
                             <div class="mb-3">
                                 <label for="seo" class="form-label">SEO Description</label>
                                 <textarea class="form-control" id="seoDesc" name="seo_desc" rows="3" placeholder="Enter SEO Description"></textarea>
+                                <div id="errorSeoDesc" class="invalid-feedback"></div>
                             </div>
                         </div> <!-- end col -->
                     </div>
@@ -521,14 +547,14 @@
                 <div class="card order-12 order-lg-0">
                     <h5 class="card-header bg-light-subtle">Publish</h5>
                     <div class="card-body">
-                        <div class="col-lg-12">
+                        <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary" id="addProduct">
                                 <i class="ri-save-line"></i> Save
                             </button>
                             <button type="button" class="btn btn-light">
                                 <i class="ri-logout-box-r-line"></i> Save & Exit
                             </button>
-                        </div> <!-- end col -->
+                        </div>
                     </div>
                     <!-- end card body-->
                 </div>
@@ -543,12 +569,16 @@
         // nav active
         $('#sidebarProduct, .activeProduct, #activeProduct').addClass('show menuitem-active');
 
-        $("#date").flatpickr({
+        function capitalize(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        flatpickr("#date", {
             mode: "range",
-            dateFormat: "Y-m-d", // Format tanggal yang diinginkan
-            // Opsi tambahan
-            locale: {
-                firstDayOfWeek: 1 // Mengatur hari pertama dalam minggu
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                // Jika Anda ingin mendapatkan nilai dan melakukan sesuatu dengan itu
+                console.log(selectedDates); // ini akan memberikan array tanggal yang dipilih
             }
         });
 
@@ -782,8 +812,17 @@
         // Mengatur event listener untuk perubahan status varian
         $('[name="is_variant"]').change(function() {
             const isChecked = $(this).is(':checked');
-            $('#variant').toggle(isChecked, 300);
-            $('#notVariant').toggle(!isChecked, 300);
+
+            if (isChecked) {
+                $('#variant').slideDown(300);
+                $('#notVariant').slideUp(300);
+            } else {
+                $('#variant').slideUp(300);
+                $('#notVariant').slideDown(300);
+
+                // Reset form ketika tidak dicentang
+                $('.reset-not-variant-form')[0].reset();
+            }
         });
 
         // Inisialisasi Tagify
@@ -828,6 +867,9 @@
                     const url = "{{ route('product.getValue', ':id') }}".replace(':id', id);
                     const existingValues = $(`#choiseAttributes${id}`).val() || [];
 
+                    // Menampilkan loading
+                    $("#vloading").show();
+
                     // Menambahkan elemen HTML untuk setiap atribut yang dipilih dengan animasi
                     const $attributeRow = $(`
                         <div class="row mt-2" id="attribute-row-${id}" style="display: none;">
@@ -844,17 +886,26 @@
 
                     // Append elemen dan tampilkan dengan animasi show
                     $('.value-attributes').append($attributeRow);
-                    $attributeRow.show(300);
+                    $attributeRow.show(300, function() {
+                        // Inisialisasi AJAX untuk mendapatkan nilai setelah elemen ditampilkan
+                        $.get(url, function(response) {
+                            const options = '<option></option>' + response.data.map(item =>
+                                `<option value="${item.id}" data-variant="${item.name}">${item.name}</option>`
+                            ).join('');
 
-                    // Inisialisasi AJAX dan Select2
-                    $.get(url, function(response) {
-                        const options = '<option></option>' + response.data.map(item =>
-                            `<option value="${item.id}" data-variant="${item.name}">${item.name}</option>`
-                        ).join('');
+                            const $select = $(`#choiseAttributes${id}`);
+                            $select.html(options).val(existingValues).trigger('change');
 
-                        const $select = $(`#choiseAttributes${id}`).html(options).val(
-                            existingValues).trigger('change');
-                        initializeSelect2($select);
+                            // Inisialisasi Select2 langsung setelah elemen diupdate
+                            initializeSelect2($select);
+
+                            // Sembunyikan loading setelah semua selesai
+                            $("#vloading").hide();
+                        }).fail(function() {
+                            // Menyembunyikan loading jika terjadi error
+                            $("#vloading").hide();
+                            alert("Terjadi kesalahan saat mengambil data.");
+                        });
                     });
                 });
             }
@@ -1028,13 +1079,13 @@
                                         </div>
                                         <div class="col ps-0">
                                             <a class="text-muted fw-bold file-name_${index}">${fileName}</a>
-                                            <input type="text" name="file_name[]" value="${fileName}" class="form-control mt-1 file-name-input_${index}" />
+                                            <input type="hidden" name="file_name[]" value="${fileName}" class="form-control mt-1 file-name-input_${index}" />
 
                                             <a class="text-muted fw-bold file-format_${index}">${fileFormat}</a>
-                                            <input type="text" name="file_format[]" value="${fileFormat}" class="form-control mt-1 file-format-input_${index}" />
+                                            <input type="hidden" name="file_format[]" value="${fileFormat}" class="form-control mt-1 file-format-input_${index}" />
 
                                             <p class="mb-0 file-size_${index}">${fileSize}</p>
-                                            <input type="text" name="file_size[]" value="${fileSize}" class="form-control mt-1 file-size-input_${index}" />
+                                            <input type="hidden" name="file_size[]" value="${fileSize}" class="form-control mt-1 file-size-input_${index}" />
                                         </div>
                                         <div class="col-auto">
                                             <button type="button" class="btn btn-link fs-16 text-muted removeImage" data-index="${index}">
@@ -1148,7 +1199,7 @@
             let minQty = $('#minQty').val();
             let maxQty = $('#maxQty').val();
             let image = $('#image1')[0].files[0];
-            let validationImage = $('input[name="image"]').val().split('\\').pop();
+            // let validationImage = $('input[name="image"]').val().split('\\').pop();
             let isVarinat = $('#is_variant').val();
             let price = $('#price').val();
             let sku = $('#sku').val();
@@ -1171,13 +1222,13 @@
             let newArrival = $('#newArrival').is(':checked') ? '1' : '0';
             let bestSeller = $('#bestSeller').is(':checked') ? '1' : '0';
             let specialOffer = $('#specialOffer').is(':checked') ? '1' : '0';
+            let refundable = $('#refundable').is(':checked') ? '1' : '0';
             let hot = $('#hot').is(':checked') ? '1' : '0';
             let newLabel = $('#new').is(':checked') ? '1' : '0';
             let sale = $('#newArrival').is(':checked') ? '1' : '0';
 
             // Mengambil gambar-gambar dari input multiple
             let multipleImage = $('#image2')[0].files;
-
 
             // Hanya lakukan validasi jika isVariant dicentang
             if (isVariant === '1') {
@@ -1253,6 +1304,8 @@
             fd.append("min_qty", minQty);
             fd.append("max_qty", maxQty);
             fd.append("price", price);
+            fd.append("refundable", refundable);
+            fd.append("image1", image);
             fd.append("sku", sku);
             fd.append("stock", stock);
             fd.append("discount_range", date);
@@ -1277,7 +1330,7 @@
             fd.append("is_active", isActive);
             fd.append("is_variant", isVariant);
             fd.append("is_feature", isFeature);
-            fd.append("validation_image", validationImage);
+            // fd.append("validation_image", validationImage);
 
             $.ajaxSetup({
                 headers: {
@@ -1303,21 +1356,129 @@
                 },
                 success: function(response) {
                     if (response.status == 200) {
-                        // console.log('object')
-                    } else {
-                        const fieldsWithErrors = ['name', 'unit', 'minQty', 'maxQty', 'stock',
-                            'longDesc', 'brandId', 'categoryId', 'subCategoryId'
+                        $.toast({
+                            text: response.message,
+                            icon: 'success',
+                            showHideTransition: 'plain',
+                            hideAfter: 1500,
+                            position: 'top-right',
+                            afterShown: function() {
+                                setTimeout(() => {
+                                    window.location.href =
+                                        "{{ route('product.index') }}";
+                                }, 1500);
+                            },
+                        });
+                    } else if (response.status == 400) {
+                        const fields = [{
+                                id: 'unit',
+                                key: 'unit'
+                            },
+                            {
+                                id: 'brandId',
+                                key: 'brand_id'
+                            },
+                            {
+                                id: 'categoryId',
+                                key: 'category_id'
+                            },
+                            {
+                                id: 'subCategoryId',
+                                key: 'sub_category_id'
+                            },
+                            {
+                                id: 'name',
+                                key: 'name'
+                            },
+                            {
+                                id: 'shortDesc',
+                                key: 'short_desc'
+                            },
+                            {
+                                id: 'barcode',
+                                key: 'barcode'
+                            },
+                            {
+                                id: 'seo',
+                                key: 'seo'
+                            },
+                            {
+                                id: 'seoDesc',
+                                key: 'seo_desc'
+                            },
+                            {
+                                id: 'longDesc',
+                                key: 'long_desc'
+                            },
+                            {
+                                id: 'isActive',
+                                key: 'is_active'
+                            },
+                            {
+                                id: 'tags',
+                                key: 'tags'
+                            },
+                            {
+                                id: 'image1',
+                                key: 'image1'
+                            },
+                            {
+                                id: 'price',
+                                key: 'price'
+                            },
+                            {
+                                id: 'stock',
+                                key: 'stock'
+                            },
+                            {
+                                id: 'sku',
+                                key: 'sku'
+                            },
                         ];
-                        fieldsWithErrors.forEach(field => {
-                            if (response.message[field]) {
-                                $(`#${field}`).addClass('is-invalid');
-                                $(`#error${field.charAt(0).toUpperCase() + field.slice(1)}`)
-                                    .html(response.message[field]);
+
+                        fields.forEach(field => {
+                            const errorElement = $(`#error${capitalize(field.id)}`);
+                            const $field = $(`#${field.id}`);
+                            const isSelect2 = $field.hasClass(
+                                'select2-hidden-accessible'); // Check if it's a Select2
+                            const isTagify = $field.hasClass(
+                                'tagify--input'); // Check if it's a Tagify input
+
+                            if (response.message[field.key]) {
+                                if (isTagify) {
+                                    // If it's a Tagify input, add the is-invalid class to the Tagify input's parent
+                                    $field.closest('.tagify').addClass('is-invalid');
+                                } else if (isSelect2) {
+                                    // If it's Select2, add the is-invalid class to the container
+                                    $field.siblings('.select2-container').addClass(
+                                        'is-invalid');
+                                } else {
+                                    // If it's a normal input, add the is-invalid class to the input
+                                    $field.addClass('is-invalid');
+                                }
+                                errorElement.html(response.message[field.key]);
                             } else {
-                                $(`#${field}`).removeClass('is-invalid').val('');
-                                $(`#error${field.charAt(0).toUpperCase() + field.slice(1)}`)
-                                    .html('');
+                                if (isTagify) {
+                                    // If it's a Tagify input, remove the is-invalid class from the Tagify input's parent
+                                    $field.closest('.tagify').removeClass('is-invalid');
+                                } else if (isSelect2) {
+                                    // If it's Select2, remove the is-invalid class from the container
+                                    $field.siblings('.select2-container').removeClass(
+                                        'is-invalid');
+                                } else {
+                                    // If it's a normal input, remove the is-invalid class
+                                    $field.removeClass('is-invalid');
+                                }
+                                errorElement.html('');
                             }
+                        });
+
+
+                    } else if (response.status == 500) {
+                        Swal.fire({
+                            icon: "error",
+                            title: response.message,
+                            text: response.error,
                         });
                     }
 

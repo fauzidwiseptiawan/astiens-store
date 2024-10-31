@@ -52,6 +52,8 @@
     <link href="{{ asset('template/backend') }}/vendor/tagify/tagify.css" rel="stylesheet" type="text/css" />
     <!-- Footable css -->
     <link rel="stylesheet" href="{{ asset('template/backend') }}/vendor/footable/css/footable.bootstrap.min.css">
+    {{-- style css costume --}}
+    @stack('styles')
 </head>
 
 <body>
@@ -358,13 +360,12 @@
     <script src="{{ asset('template/backend') }}/vendor/tinymce/tinymce.min.js"></script>
     <!-- Flatpickr Timepicker Plugin js -->
     <script src="{{ asset('template/backend') }}/vendor/flatpickr/flatpickr.min.js"></script>
+    <!-- Rateit js -->
+    <script src="{{ asset('template/backend') }}/vendor/jquery.rateit/scripts/jquery.rateit.min.js"></script>
     <!-- Dashboard App js -->
     {{-- <script src="{{ asset('template/backend') }}/js/pages/demo.dashboard.js"></script> --}}
     <!-- App js -->
     <script src="{{ asset('template/backend') }}/js/app.min.js"></script>
-
-    {{-- style css costume --}}
-    @stack('styles')
     <!-- JS Library -->
     @stack('page-scripts')
     <!-- Page Specific JS File -->

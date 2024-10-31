@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('product_id');
             $table->string('variant')->nullable();
             $table->string('variant_attribute')->nullable();
-            $table->decimal('price', 10, 2)->default(0);
+            $table->integer('price')->default(0)->nullable();
             $table->string('stock')->nullable();
             $table->string('sku')->nullable();
             $table->text('image')->nullable();

@@ -19,8 +19,9 @@ return new class extends Migration
             $table->string('item_code')->nullable();
             $table->string('name')->nullable();
             $table->string('slugs')->nullable();
-            $table->string('unit')->nullable();
-            $table->integer('min_qty')->nullable();
+            $table->string('unit')->nullable()->default('g'); // Atau gunakan 'enum' untuk membatasi pilihan
+            $table->string('weight')->nullable();
+            $table->integer('min_qty')->default(0)->nullable();
             $table->integer('max_qty')->nullable();
             $table->string('barcode')->nullable();
             $table->text('image')->nullable();
@@ -43,10 +44,11 @@ return new class extends Migration
             $table->enum('hot', [0, 1])->default(0);
             $table->enum('new', [0, 1])->default(0);
             $table->enum('sale', [0, 1])->default(0);
-            $table->enum('is_active', [0, 1])->default(1);
+            $table->string('is_active')->nullable();
             $table->enum('is_deleted', [0, 1])->default(0);
             $table->enum('is_variant', [0, 1])->default(0);
             $table->enum('is_feature', [0, 1])->default(0);
+            $table->enum('refundable', [0, 1])->default(0);
             $table->timestamp('created_at')->useCurrent();
             $table->string('created_by')->nullable();
             $table->timestamp('updated_at')->nullable();
