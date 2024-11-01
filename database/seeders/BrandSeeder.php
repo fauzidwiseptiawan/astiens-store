@@ -17,8 +17,8 @@ class BrandSeeder extends Seeder
         $faker = Faker::create();
 
         // Buat 10 data brand secara acak
-        for ($i = 0; $i < 10; $i++) {
-            $name = $faker->company;
+        for ($i = 0; $i < 1000; $i++) {
+            $name = $faker->words(5, true);
 
             Brand::create([
                 'name' => $name,

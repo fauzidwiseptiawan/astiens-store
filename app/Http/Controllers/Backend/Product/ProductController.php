@@ -18,13 +18,20 @@ use Illuminate\Support\Facades\Auth;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use App\Helpers\NumberFormatter;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
     function index()
     {
-        $brand = Brand::where('is_active', '1')->orderBy('name', 'ASC')->get();
-        $category = Category::where('is_active', '1')->orderBy('name', 'ASC')->get();
+        $brand = Cache::remember('brand', 60, function () {
+            return Brand::orderBy('name', 'ASC')->get();
+        });
+
+        $category = Cache::remember('category', 60, function () {
+            return Category::orderBy('name', 'ASC')->get();
+        });
         return view('backend.product.index', compact('brand', 'category'));
     }
 
@@ -32,7 +39,7 @@ class ProductController extends Controller
     function get_value($id)
     {
         try {
-            $value = AttributesValue::where('attributes_id', $id)->where('is_active', '1')->orderBy('name', 'ASC')->get();
+            $value = AttributesValue::where('attributes_id', $id)->orderBy('name', 'ASC')->get();
             return response()->json([
                 'status'       => 200,
                 'message'      => 'success',
@@ -73,7 +80,7 @@ class ProductController extends Controller
     function sub_category($id)
     {
         try {
-            $value = SubCategory::where('category_id', $id)->where('is_active', '1')->orderBy('name', 'ASC')->get();
+            $value = SubCategory::where('category_id', $id)->orderBy('name', 'ASC')->get();
             return response()->json([
                 'status'       => 200,
                 'message'      => 'success',
@@ -132,13 +139,26 @@ class ProductController extends Controller
         return $combinations;
     }
 
-    function fetch()
+    function fetch(Request $request)
     {
-        // fetch product
-        $product = Product::where('is_deleted', '0')->orderBy('id', 'ASC')->get();
+
+        // Mengambil produk tanpa cache
+        $products = Product::with(['brand', 'category', 'variants'])
+            ->when($request->filled('search') && !empty($request->search['value']), function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search['value'] . '%');
+            })
+            ->when($request->filled('brand') && $request->brand != 0, function ($q) use ($request) {
+                $q->where('brand_id', $request->brand);
+            })
+            ->when($request->filled('category') && $request->category != 0, function ($q) use ($request) {
+                $q->where('category_id', $request->category);
+            })
+            ->when($request->filled('status') && $request->status != 0, function ($q) use ($request) {
+                $q->where('is_active', $request->status);
+            })->get();
         // display result datatable
         return datatables()
-            ->of($product)
+            ->of($products)
             ->addIndexColumn()
             ->addColumn('select_all', function ($product) {
                 return '<input type="checkbox" class="form-check-input select-form" id="select" name="select" value="' . $product->id . '">';
@@ -166,21 +186,36 @@ class ProductController extends Controller
                     $bestPrice = $product->variants[0]->price; // Asumsikan 'price' adalah atribut harga varian
                 }
                 // set default penjualan
+                $ratingValue = 2.5; // Ganti ini sesuai dengan logika rating Anda
                 $numOfSale = 51;
-                return '
-                    <div style="margin-bottom: 5px;">
-                        ' . ($numOfSale > 50 ? '<span class="badge bg-success">Best Seller</span>' : '') . '
-                    </div>
-                    <strong>Num of Sale:</strong> ' . $numOfSale . ' times
-                    <br>
-                    <strong>Price:</strong> Rp.' . NumberFormatter::format($bestPrice ?? 0) . '
-                    <br>
-                    <div style="display: flex; align-items: center;">
-                        <strong style="margin-right: 10px;">Rating:</strong>
-                        <div class="rateit" data-rateit-mode="font" data-rateit-readonly="true" data-rateit-value="2.5" data-rateit-ispreset="true"></div>
-                    </div>
-                ';
+                return json_encode([
+                    'html' => '
+                        <div style="margin-bottom: 5px;">
+                            ' . ($numOfSale > 50 ? '<span class="badge bg-success">Best Seller</span>' : '') . '
+                        </div>
+                        <strong>Num of Sale:</strong> ' . $numOfSale . ' times
+                        <br>
+                        <strong>Price:</strong> Rp.' . NumberFormatter::format($bestPrice) . '
+                        <br>
+                        <div style="display: flex; align-items: center;">
+                            <strong style="margin-right: 10px;">Rating:</strong>
+                            <div class="rateit" data-rateit-mode="font" data-rateit-readonly="true" data-rateit-value="' . $ratingValue . '" data-rateit-ispreset="true"></div>
+                        </div>
+                    ',
+                ]);
             })
+            // hidden column
+            ->addColumn('price', function ($product) {
+                return $product->price ?? ($product->variants[0]->price ?? null);
+            })
+            ->addColumn('rating', function ($product) {
+                $ratingValue = 2.5; // Ganti ini sesuai dengan logika rating Anda
+                return $ratingValue; // Ganti dengan nilai rating yang sesuai
+            })
+            ->addColumn('sale', function ($product) {
+                return $product->num_of_sale ?? 51; // Ganti dengan data yang relevan
+            })
+            // end hidden column
             ->addColumn('stock', function ($product) {
                 if ($product->is_variant == 1) {
                     // Loop melalui setiap varian dan ambil atributnya
@@ -215,7 +250,6 @@ class ProductController extends Controller
                     }
                 }
             })
-
             ->addColumn('special_offer', function ($product) {
                 if ($product->special_offer == 1) {
                     return '<label class="slideon">
@@ -268,9 +302,21 @@ class ProductController extends Controller
 
     function create()
     {
-        $attributes = Attributes::where('is_active', '1')->orderBy('name', 'ASC')->get();
-        $brand = Brand::where('is_active', '1')->orderBy('name', 'ASC')->get();
-        $category = Category::where('is_active', '1')->orderBy('name', 'ASC')->get();
+        // Mendapatkan data attributes dari cache atau database
+        $attributes = Cache::remember('active_attributes', 60, function () {
+            return Attributes::orderBy('name', 'ASC')->get();
+        });
+
+        // Mendapatkan data brand dari cache atau database
+        $brand = Cache::remember('active_brands', 60, function () {
+            return Brand::orderBy('name', 'ASC')->get();
+        });
+
+        // Mendapatkan data category dari cache atau database
+        $category = Cache::remember('active_categories', 60, function () {
+            return Category::orderBy('name', 'ASC')->get();
+        });
+
         return view('backend.product.add', compact('attributes', 'brand', 'category'));
     }
 

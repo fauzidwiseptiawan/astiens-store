@@ -332,6 +332,9 @@
             var url = "{{ route('attributes.show', ':id') }}";
             url = url.replace(':id', id);
 
+            console.log(id);
+
+
             $.ajax({
                 url: url,
                 type: "GET",
@@ -341,8 +344,8 @@
                 },
                 success: function(response) {
                     $('#modal-update-attributes').modal('show');
-                    $('#edtId').val(response.sub_category.id);
-                    $('#edtName').val(response.sub_category.name);
+                    $('#edtId').val(response.attributes.id);
+                    $('#edtName').val(response.attributes.name);
                 }
             })
         })

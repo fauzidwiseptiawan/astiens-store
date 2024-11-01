@@ -93,6 +93,9 @@
                 <div class="collapse" id="sidebarMarketing">
                     <ul class="side-nav-second-level">
                         <li>
+                            <a href="apps-tasks-details.html">Dynamic Pop-up</a>
+                        </li>
+                        <li>
                             <a href="apps-tasks.html">Flash Sale</a>
                         </li>
                         <li>
@@ -121,10 +124,10 @@
                 <div class="collapse" id="sidebarUI">
                     <ul class="side-nav-second-level">
                         <li>
-                            <a href="pages-invoice.html">Header</a>
+                            <a href="pages-profile.html">Homepage Setting</a>
                         </li>
                         <li>
-                            <a href="pages-profile.html">Homepage Setting</a>
+                            <a href="pages-invoice.html">Header</a>
                         </li>
                         <li>
                             <a href="pages-faq.html">Footer</a>

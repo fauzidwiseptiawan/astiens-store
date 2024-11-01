@@ -1,6 +1,12 @@
 @extends('backend.layouts.master')
 @section('title', 'Product')
 @push('styles')
+    <style>
+        .dataTables_wrapper .dataTable thead th.sorting_asc_disabled::after,
+        .dataTables_wrapper .dataTable thead th.sorting_desc_disabled::after {
+            display: none;
+        }
+    </style>
 @endpush
 @section('content')
     <!-- Start Content-->
@@ -79,12 +85,12 @@
                         <select class="form-control shortBy" data-toggle="shortBy" name="shortBy" id="shortBy">
                             <option></option>
                             <option value="1">Sort By</option>
-                            <option value="2">Rating (High > Low)</option>
-                            <option value="3">Rating (Low > High)</option>
-                            <option value="4">Num of Sale (High > Low)</option>
-                            <option value="5">Num of Sale (Low > High)</option>
-                            <option value="6">Price (High > Low)</option>
-                            <option value="7">Price (Low > High)</option>
+                            <option value="high_rating">Rating (High > Low)</option>
+                            <option value="low_rating">Rating (Low > High)</option>
+                            <option value="high_sale">Num of Sale (High > Low)</option>
+                            <option value="high_sale">Num of Sale (Low > High)</option>
+                            <option value="high_price">Price (High > Low)</option>
+                            <option value="low_price">Price (Low > High)</option>
                         </select>
                     </div> <!-- end col -->
                     <div class="col-sm-2 mb-1 d-grid">
@@ -155,12 +161,29 @@
             var devareSelected = (selectAll.length > 0)
         })
 
-        // fetch data category
         let table;
-        let check = 0
+        let check = 0;
+        let search = $('#search').val().toLowerCase(),
+            brand = $('#brandId').val(),
+            category = $('#categoryId').val(),
+            status = $('#isActive').val(),
+            shortBy = $('#shortBy').val()
+
+        // function submit seacrh
+        $('.submit').on('click', function(e) {
+            e.preventDefault(); // Mencegah submit form jika ada
+            search = $('.search').val().toLowerCase();
+            brand = $('.brand').val();
+            category = $('.category').val();
+            status = $('.status').val();
+            table.ajax.reload(null, false)
+        })
+
+
+        // fetch data category
         $(function() {
             // Inisialisasi DataTable
-            var table = $("#tableProduct").DataTable({
+            table = $("#tableProduct").DataTable({
                 responsive: true,
                 processing: true,
                 serverSide: true,
@@ -168,10 +191,15 @@
                 ajax: {
                     url: "{{ route('product.fetch') }}",
                     type: "GET",
+                    data: function(d) {
+                        d.search.value = search;
+                        d.brand = brand;
+                        d.category = category;
+                        d.status = status;
+                        return d
+                    }
                 },
-                order: [
-                    [1, 'desc']
-                ],
+                order: [],
                 columns: [{
                         data: 'select_all',
                         searchable: false,
@@ -179,12 +207,13 @@
                         width: "7%",
                         render: function(data, type, row) {
                             // Menambahkan span untuk menunjukkan status expand/collapse
-                            return `<span class="toggle-row" style="cursor: pointer;"> <span class="badge badge-outline-primary"><i class="ri-add-line"></i></span> ${data}</span>`;
+                            return `<span class="toggle-row" style="cursor: pointer;"> <span class="badge badge-outline-primary"><i class="expand-icon ri-add-line"></i></span> ${data}</span>`;
                         },
                     },
                     {
                         data: 'name',
                         width: "40%",
+                        sortable: false,
                     },
                     {
                         data: 'info',
@@ -203,6 +232,19 @@
                         searchable: false,
                         sortable: false,
                     },
+                    {
+                        data: 'price',
+                        visible: false
+                    }, // Kolom tersembunyi untuk harga
+                    {
+                        data: 'rating',
+                        visible: false
+                    }, // Kolom tersembunyi untuk rating
+                    {
+                        data: 'sale',
+                        visible: false
+                    }, // Kolom tersembunyi untuk penjualan
+
                 ],
                 pagingType: "full_numbers",
                 language: {
@@ -212,12 +254,70 @@
                     },
                     processing: "<div class='spinner-border text-primary m-2' role='status'></div>",
                 },
+                createdRow: function(row, data, dataIndex) {
+                    // Menambahkan HTML ke dalam kolom info
+                    var info = JSON.parse(data.info); // Parsing JSON untuk mendapatkan data
+                    $('td:eq(2)', row).html(info.html); // Mengubah HTML untuk kolom info
+                },
+                initComplete: function() {
+                    // Menyembunyikan ikon sorting yang tidak diinginkan
+                    $(this).find('th.sorting_asc_disabled, th.sorting_desc_disabled').removeClass(
+                        'sorting_asc_disabled sorting_desc_disabled');
+                },
                 drawCallback: function(settings) {
                     $(".dataTables_paginate > .pagination").addClass("pagination-rounded");
                     $('[data-bs-toggle="tooltip"]').tooltip();
                     // Inisialisasi RateIt untuk semua elemen baru
                     $('.rateit').rateit();
                 },
+            });
+
+            // Menambahkan fitur pengurutan di sisi klien
+            $('.shortBy').change(function() {
+                var shortBy = $(this).val();
+                table.order([]); // Reset order sebelum menentukan order baru
+
+                switch (shortBy) {
+                    case 'low_price':
+                        table.order([
+                            [5, 'asc']
+                        ]).draw(); // Urutkan berdasarkan harga ascending
+                        break;
+                    case 'high_price':
+                        table.order([
+                            [5, 'desc']
+                        ]).draw(); // Urutkan berdasarkan harga descending
+                        break;
+                    case 'high_rating':
+                        // Sorting berdasarkan rating (perlu menyesuaikan cara ambil datanya)
+                        table.order([
+                            [6, 'desc']
+                        ]).draw(); // Perlu logika tambahan untuk ambil rating
+                        break;
+                    case 'low_rating':
+                        // Sorting berdasarkan rating
+                        table.order([
+                            [6, 'asc']
+                        ]).draw(); // Perlu logika tambahan untuk ambil rating
+                        break;
+                    case 'high_sale':
+                        // Sorting berdasarkan sale (perlu menyesuaikan cara ambil datanya)
+                        table.order([
+                            [7, 'desc']
+                        ]).draw(); // Perlu logika tambahan untuk ambil sale
+                        break;
+                    case 'low_sale':
+                        // Sorting berdasarkan sale
+                        table.order([
+                            [7, 'asc']
+                        ]).draw(); // Perlu logika tambahan untuk ambil sale
+                        break;
+                    default:
+                        table.order([
+                            [0, 'asc']
+                        ]).draw(); // Urutkan berdasarkan ID default
+                        break;
+                }
             });
 
             // Menambahkan event listener untuk klik baris
@@ -235,41 +335,41 @@
                     // Jika child row sudah terbuka, tutup
                     row.child.hide();
                     tr.removeClass('shown');
-                    tr.find('i').removeClass('ri-subtract-line').addClass('ri-add-line'); // Ganti ikon
+                    tr.find('.expand-icon').removeClass('ri-subtract-line').addClass('ri-add-line'); // Ganti ikon
                 } else {
                     // Jika child row belum terbuka, buka dan tampilkan konten
                     row.child(createChildRowContent(row.data())).show();
                     tr.addClass('shown');
-                    tr.find('i').removeClass('ri-add-line').addClass('ri-subtract-line'); // Ganti ikon
+                    tr.find('.expand-icon').removeClass('ri-add-line').addClass('ri-subtract-line'); // Ganti ikon
                 }
             }
 
             // Fungsi untuk membuat konten child row
             function createChildRowContent(data) {
                 return `
-            <table class="table table-striped dt-responsive w-100">
-                <tr>
-                    <th width="20%">Brand</th>
-                    <td>${data.brand}</td>
-                </tr>
-                <tr>
-                    <th width="20%">Category</th>
-                    <td>${data.category}</td>
-                </tr>
-                <tr>
-                    <th width="20%">Publish</th>
-                    <td>${data.publish}</td>
-                </tr>
-                <tr>
-                    <th width="20%">Feature</th>
-                    <td>${data.feature}</td>
-                </tr>
-                <tr>
-                    <th width="20%">Special Offer</th>
-                    <td>${data.special_offer}</td>
-                </tr>
-            </table>
-        `;
+                    <table class="table table-striped dt-responsive w-100">
+                        <tr>
+                            <th width="20%">Brand</th>
+                            <td>${data.brand}</td>
+                        </tr>
+                        <tr>
+                            <th width="20%">Category</th>
+                            <td>${data.category}</td>
+                        </tr>
+                        <tr>
+                            <th width="20%">Publish</th>
+                            <td>${data.publish}</td>
+                        </tr>
+                        <tr>
+                            <th width="20%">Feature</th>
+                            <td>${data.feature}</td>
+                        </tr>
+                        <tr>
+                            <th width="20%">Special Offer</th>
+                            <td>${data.special_offer}</td>
+                        </tr>
+                    </table>
+                `;
             }
 
             table.buttons().container()
