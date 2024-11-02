@@ -17,22 +17,77 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use App\Services\ImageUploadService;
 use App\Helpers\NumberFormatter;
+use App\Scopes\ActiveScope;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
+    protected $imageUploadService;
+
+    public function __construct(ImageUploadService $imageUploadService)
+    {
+        $this->imageUploadService = $imageUploadService;
+    }
+
+
     function index()
     {
-        $brand = Cache::remember('brand', 60, function () {
-            return Brand::orderBy('name', 'ASC')->get();
-        });
+        return view('backend.product.index');
+    }
 
-        $category = Cache::remember('category', 60, function () {
-            return Category::orderBy('name', 'ASC')->get();
-        });
-        return view('backend.product.index', compact('brand', 'category'));
+    // Method get brand per page 10
+    function get_brand(Request $request)
+    {
+        try {
+            $query = Brand::query();
+
+            if ($request->has('q')) {
+                $query->where('name', 'like', '%' . $request->q . '%');
+            }
+
+            $brands = $query->paginate(10); // Paginasi 10 data per halaman
+            return response()->json([
+                'status'       => 200,
+                'message'      => 'success',
+                'data'         => $brands->items(),
+                'total'        => $brands->total(),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'An error occurred while get value.',
+                'error' => $e->getMessage(), // Tambahkan pesan error asli di sini
+            ]);
+        }
+    }
+
+    // Method get category per page 10
+    function get_category(Request $request)
+    {
+        try {
+            $query = Category::query();
+
+            if ($request->has('q')) {
+                $query->where('name', 'like', '%' . $request->q . '%');
+            }
+
+            $categorys = $query->paginate(10); // Paginasi 10 data per halaman
+            return response()->json([
+                'status'       => 200,
+                'message'      => 'success',
+                'data'         => $categorys->items(),
+                'total'        => $categorys->total(),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => 'An error occurred while get value.',
+                'error' => $e->getMessage(), // Tambahkan pesan error asli di sini
+            ]);
+        }
     }
 
     // Method get attributes value
@@ -410,22 +465,38 @@ class ProductController extends Controller
 
                 // Menyimpan gambar utama
                 if ($request->hasFile('image1')) {
-                    $path_single = 'upload/image/product';
-                    $path_resize_single = 'upload/image/product/thumbnail';
-                    $file_single = $request->file('image1');
-                    $file_single_name = time() . '_' . $file_single->getClientOriginalName();
-                    $file_single_size = $file_single->getSize();
-                    $file_single_extension = $file_single->extension();
-                    $file_single->storeAs($path_single, $file_single_name, 'public');
-                    // resize image
-                    $manager = new ImageManager(new Driver());
-                    $resize_img = $manager->read($file_single);
-                    $resize_img->resize(300, 300)->save($file_single);
-                    $file_single->storeAs($path_resize_single, $file_single_name, 'public');
+                    $path = 'upload/image/product';
+                    $pathResize = 'upload/image/product/thumbnail';
 
-                    $product->image = $file_single_name;
-                    $product->ext = $file_single_extension;
-                    $product->size = $file_single_size;
+                    // Ambil file yang diupload
+                    $imageFile = $request->file('image1');
+
+                    // Simpan file ke lokasi sementara
+                    $tempPath = 'temp/' . $imageFile->getClientOriginalName();
+                    $imageFile->move('temp', $imageFile->getClientOriginalName());
+
+                    try {
+                        // Menggunakan service untuk meng-upload dan meresize gambar
+                        $fileInfo = $this->imageUploadService->uploadAndResize(
+                            $request->file('image'),
+                            $path,
+                            $pathResize
+                        );
+
+                        if ($fileInfo) {
+                            $product->image = $fileInfo['file_name'];
+                            $product->ext = $fileInfo['file_extension'];
+                            $product->size = $fileInfo['file_size'];
+                        } else {
+                            // Jika upload gagal, hapus file sementara
+                            unlink($tempPath);
+                            throw new \Exception('Failed to upload the main image.');
+                        }
+                    } catch (\Throwable $e) {
+                        // Jika terjadi kesalahan, hapus file sementara
+                        unlink($tempPath);
+                        throw $e; // Lempar exception untuk ditangani di blok catch luar
+                    }
                 }
 
                 // Simpan ke database
@@ -459,22 +530,37 @@ class ProductController extends Controller
 
                             // Upload gambar varian jika ada
                             if ($request->hasFile("variant_image.$index")) {
-                                $path_variant = 'upload/image/product/variant';
-                                $path_variant_resize = 'upload/image/product/variant/thumbnail';
-                                $file_variant = $request->file("variant_image.$index");
-                                $file_variant_name = time() . '_' . $file_variant->getClientOriginalName();
-                                $file_variant_size = $file_variant->getSize();
-                                $file_variant_extension = $file_variant->extension();
-                                $file_variant->storeAs($path_variant, $file_variant_name, 'public');
-                                // resize image
-                                $manager = new ImageManager(new Driver());
-                                $resize_variant_img = $manager->read($file_variant);
-                                $resize_variant_img->resize(300, 300)->save($file_variant);
-                                $file_variant->storeAs($path_variant_resize, $file_variant_name, 'public');
+                                $path = 'upload/image/product/variant';
+                                $pathResize = 'upload/image/product/variant/thumbnail';
 
-                                $variant->image = $file_variant_name;
-                                $variant->ext = $file_variant_extension;
-                                $variant->size = $file_variant_size;
+                                // Ambil file yang diupload
+                                $imageFile = $request->file("variant_image.$index");
+
+                                // Simpan file ke lokasi sementara
+                                $tempPath = 'temp/' . $imageFile->getClientOriginalName();
+                                $imageFile->move('temp', $imageFile->getClientOriginalName());
+
+                                try {
+                                    // Menggunakan service untuk meng-upload dan meresize gambar
+                                    $fileInfo = $this->imageUploadService->uploadAndResize(
+                                        $request->file("variant_image.$index"),
+                                        $path,
+                                        $pathResize
+                                    );
+                                    if ($fileInfo) {
+                                        $variant->image = $fileInfo['file_name'];
+                                        $variant->ext = $fileInfo['file_extension'];
+                                        $variant->size = $fileInfo['file_size'];
+                                    } else {
+                                        // Jika upload gagal, hapus file sementara
+                                        unlink($tempPath);
+                                        throw new \Exception('Failed to upload the main image.');
+                                    }
+                                } catch (\Throwable $e) {
+                                    // Jika terjadi kesalahan, hapus file sementara
+                                    unlink($tempPath);
+                                    throw $e; // Lempar exception untuk ditangani di blok catch luar
+                                }
                             }
 
                             // Simpan varian ke database
@@ -494,27 +580,55 @@ class ProductController extends Controller
                     foreach ($request->file('image2') as $image_multiple) {
                         // Pastikan file adalah instance yang valid
                         if ($image_multiple->isValid()) {
-                            $path_multiple = 'upload/image/product/gallery';
-                            $path_multiple_resize = 'upload/image/product/gallery/thumbnail';
-                            $file_multiple = $image_multiple;
-                            $file_multiple_name = $product->id . '-' . time() . '_' . $file_multiple->getClientOriginalName();
-                            $file_multiple_size = $file_multiple->getSize();
-                            $file_multiple_extension = $file_multiple->extension();
-                            $file_multiple->storeAs($path_multiple, $file_multiple_name, 'public');
-                            // resize image
-                            $manager = new ImageManager(new Driver());
-                            $resize_img = $manager->read($file_multiple);
-                            $resize_img->resize(300, 300)->save($file_multiple);
-                            $file_multiple->storeAs($path_multiple_resize, $file_multiple_name, 'public');
-                            // validation is successful it is saved to the database
-                            ProductImage::create([
-                                'product_id' => $product->id,
-                                'image'      => $file_multiple_name,
-                                'ext'        => $file_multiple_extension,
-                                'size'       => $file_multiple_size,
-                                'created_by' => Auth::user()->id,
-                                'created_at' => now(),
-                            ]);
+                            $path = 'upload/image/product/gallery';
+                            $pathResize = 'upload/image/product/gallery/thumbnail';
+
+                            // costume resize
+                            $width = 300;
+                            $height = 300;
+                            // costume quality image
+                            $quality = 75;
+                            // getid on name image
+                            $id = $product->id;
+
+                            // Simpan file ke lokasi sementara
+                            $tempPathGallery  = 'temp/' . $image_multiple->getClientOriginalName();
+                            $image_multiple->move('temp', $image_multiple->getClientOriginalName());
+
+                            try {
+                                // Menggunakan service untuk meng-upload dan meresize gambar
+                                $fileToGallery  = $this->imageUploadService->uploadAndResize(
+                                    $image_multiple,
+                                    $path,
+                                    $pathResize,
+                                    $width,
+                                    $height,
+                                    $quality,
+                                    $product->id
+                                );
+
+                                if ($fileToGallery) {
+                                    // validation is successful it is saved to the database
+                                    ProductImage::create([
+                                        'product_id' => $product->id,
+                                        'image'      => $fileToGallery['file_name'],
+                                        'ext'        => $fileToGallery['file_extension'],
+                                        'size'       => $fileToGallery['file_size'],
+                                        'created_by' => Auth::user()->id,
+                                        'created_at' => now(),
+                                    ]);
+                                } else {
+                                    // Jika upload galeri gagal, hapus gambar produk dan file sementara
+                                    unlink($tempPath); // Hapus gambar produk
+                                    unlink($tempPathGallery); // Hapus gambar galeri sementara
+                                    throw new \Exception('Failed to upload the main image.');
+                                }
+                            } catch (\Throwable $e) {
+                                // Jika terjadi kesalahan, hapus gambar produk dan file galeri sementara
+                                unlink($tempPath); // Hapus gambar produk
+                                unlink($tempPathGallery); // Hapus gambar galeri sementara
+                                throw $e; // Lempar exception untuk ditangani di blok catch luar
+                            }
                         }
                     }
                 }

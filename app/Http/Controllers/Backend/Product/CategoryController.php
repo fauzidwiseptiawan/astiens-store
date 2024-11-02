@@ -7,13 +7,19 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ImageUploadService;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 
 class CategoryController extends Controller
 {
+    protected $imageUploadService;
+
+    public function __construct(ImageUploadService $imageUploadService)
+    {
+        $this->imageUploadService = $imageUploadService;
+    }
+
     function index()
     {
         return view('backend.category.index');
@@ -32,7 +38,7 @@ class CategoryController extends Controller
             })
 
             ->addColumn('image', function ($category) {
-                if ($category == '') {
+                if ($category != null && !empty($category->image)) {
                     return '<img src="' . asset('storage/upload/image/category/thumbnail/' . $category->image) . '" class="img-thumbnail" height="80" width="80" alt="' . asset('storage/upload/image/category/' . $category->image) . '">';
                 } else {
                     return '<img src="https://placehold.co/400" class="img-thumbnail" height="80" width="80" alt="https://placehold.co/400">';
@@ -78,17 +84,14 @@ class CategoryController extends Controller
             // check if validate by adding image
             if (!$request->hasFile('image') == "") {
                 $path = 'upload/image/category';
-                $path_resize = 'upload/image/category/thumbnail';
-                $file = $request->file('image');
-                $file_name = time() . '_' . $file->getClientOriginalName();
-                $file_size = $file->getSize();
-                $file_extension = $file->extension();
-                $file->storeAs($path, $file_name, 'public');
-                // resize image
-                $manager = new ImageManager(new Driver());
-                $resize_img = $manager->read($file);
-                $resize_img->resize(300, 300)->save($file);
-                $file->storeAs($path_resize, $file_name, 'public');
+                $pathResize = 'upload/image/category/thumbnail';
+
+                // Menggunakan service untuk meng-upload dan meresize gambar
+                $fileInfo = $this->imageUploadService->uploadAndResize(
+                    $request->file('image'),
+                    $path,
+                    $pathResize
+                );
                 // validation is successful it is saved to the database
                 Category::create([
                     'name' => $request->name,
@@ -96,11 +99,11 @@ class CategoryController extends Controller
                     'position_order' => $request->position,
                     'meta' => $request->keywords,
                     'meta_desc' => $request->desc,
-                    'image' => $file_name,
-                    'ext' =>  $file_extension,
-                    'size' =>  $file_size,
-                    'created_by' =>  Auth::user()->id,
-                    'created_at' =>  now(),
+                    'image' => $fileInfo['file_name'],
+                    'ext' => $fileInfo['file_extension'],
+                    'size' => $fileInfo['file_size'],
+                    'created_by' => Auth::user()->id,
+                    'created_at' => now(),
                 ]);
                 return response()->json([
                     'status'   => 200,
@@ -139,48 +142,44 @@ class CategoryController extends Controller
                 'message' => $validator->errors()->toArray()
             ]);
         } else {
+            // Mendefinisikan path untuk gambar yang ada
+            $path_exist = 'storage/upload/image/category/' . $category->image;
+            $path_resize_exist = 'storage/upload/image/category/thumbnail/' . $category->image;
+
+            // Menghapus file gambar yang ada jika ada
+            if (File::exists($path_exist)) {
+                File::delete($path_exist);
+                File::delete($path_resize_exist);
+            }
             // check if validate by adding image
             if (!$request->hasFile('image') == "") {
-                $path_exist = 'storage/upload/image/category/' . $category->image;
-                $path_resize_exist = 'storage/upload/image/category/thumbnail/' . $category->image;
-
-                // check if there is an image file
-                if (File::exists($path_exist)) {
-                    File::delete($path_exist);
-                    File::delete($path_resize_exist);
-                }
+                // Mendefinisikan path untuk menyimpan gambar baru
                 $path = 'upload/image/category';
                 $path_resize = 'upload/image/category/thumbnail';
-                $file = $request->file('image');
-                $file_name = time() . '_' . $file->getClientOriginalName();
-                $file_size = $file->getSize();
-                $file_extension = $file->extension();
-                $upload =  $file->storeAs($path, $file_name, 'public');
-                // resize image
-                $manager = new ImageManager(new Driver());
-                $resize_img = $manager->read($file);
-                $resize_img->resize(300, 300)->save($file);
-                $upload = $file->storeAs($path_resize, $file_name, 'public');
+
+                // Menggunakan service untuk meng-upload dan meresize gambar baru
+                $fileInfo = $this->imageUploadService->uploadAndResize(
+                    $request->file('image'),
+                    $path,
+                    $path_resize
+                );
                 // validation is successful it is saved to the database
-                if ($upload) {
-                    $category->update([
-                        'name' => $request->name,
-                        'slug' => $request->slug,
-                        'position_order' => $request->position,
-                        'meta' => $request->keywords,
-                        'meta_desc' => $request->desc,
-                        'image' => $file_name,
-                        'ext' =>  $file_extension,
-                        'size' =>  $file_size,
-                        'updated_by' =>  Auth::user()->id,
-                        'updated_at' =>  Carbon::now(),
-                    ]);
-                    return response()->json([
-                        'status'   => 200,
-                        'message'  => 'Update category data was successful!'
-                    ]);
-                }
-                // check if validation is not by adding an image
+                $category->update([
+                    'name' => $request->name,
+                    'slug' => $request->slug,
+                    'position_order' => $request->position,
+                    'meta' => $request->keywords,
+                    'meta_desc' => $request->desc,
+                    'image' => $fileInfo['file_name'],
+                    'ext' => $fileInfo['file_extension'],
+                    'size' => $fileInfo['file_size'],
+                    'updated_by' =>  Auth::user()->id,
+                    'updated_at' =>  Carbon::now(),
+                ]);
+                return response()->json([
+                    'status'   => 200,
+                    'message'  => 'Update category data was successful!'
+                ]);
             } else {
                 $category->update([
                     'name' => $request->name,

@@ -57,19 +57,11 @@
                     <div class="col-lg-2 mb-1">
                         <select class="form-control brand" data-toggle="brand" name="brand_id" id="brandId">
                             <option></option>
-                            <option value="0">All Brand</option>
-                            @foreach ($brand as $item)
-                                <option value="{{ $item->id }}">{{ $item->name }}</option>
-                            @endforeach
                         </select>
                     </div> <!-- end col -->
                     <div class="col-lg-2 mb-1">
                         <select class="form-control category" data-toggle="category" name="category_id" id="categoryId">
                             <option></option>
-                            <option value="0">All</option>
-                            @foreach ($category as $item)
-                                <option value="{{ $item->id }}">{{ $item->name }}</option>
-                            @endforeach
                         </select>
                     </div> <!-- end col -->
                     <div class="col-lg-2 mb-1">
@@ -125,24 +117,86 @@
         $('.activeProduct').addClass('menuitem-active')
         $('#activeProduct').addClass('menuitem-active');
 
-        // select status
+
         $(document).ready(function() {
-            $('.brand').select2({
-                placeholder: 'All Brand',
-                allowClear: false
+            const initializeSelect2 = (selector, placeholderText) => {
+                $(selector).select2({
+                    placeholder: placeholderText,
+                    allowClear: false
+                });
+            };
+
+            initializeSelect2('.status', 'All Status');
+            initializeSelect2('.shortBy', 'Order By');
+
+            const select2Settings = (url, placeholderText, allText) => ({
+                placeholder: placeholderText,
+                allowClear: false,
+                ajax: {
+                    url: url,
+                    dataType: 'json',
+                    delay: 250,
+                    data: params => ({
+                        q: params.term,
+                        page: params.page || 1
+                    }),
+                    processResults: (data, params) => {
+                        params.page = params.page || 1;
+                        const results = data.data.map(item => ({
+                            id: item.id,
+                            text: item.name
+                        })) || [];
+
+                        if (params.page === 1) {
+                            results.unshift({
+                                id: 0,
+                                text: allText
+                            });
+                        }
+
+                        return {
+                            results: results,
+                            pagination: {
+                                more: (params.page * 10) < data.total
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0,
+                templateResult: item => $('<span>').text(item.text),
+                templateSelection: item => item.text
             });
-            $('.category').select2({
-                placeholder: 'All Category',
-                allowClear: false
-            });
-            $('.status').select2({
-                placeholder: 'All Status',
-                allowClear: false
-            });
-            $('.shortBy').select2({
-                placeholder: 'Order By',
-                allowClear: false
-            });
+
+            const initializeAjaxSelect2 = (selector, route, placeholderText, allText) => {
+                $(selector).select2(select2Settings(route, placeholderText, allText));
+                $(selector).on('select2:open', function() {
+                    loadInitialData(route, selector);
+                });
+            };
+
+            // Inisialisasi Select2 untuk Brand dan Category dengan URL Laravel yang sudah langsung disisipkan
+            initializeAjaxSelect2('#brandId', `{{ route('product.getBrand') }}`, 'All Brand', 'All Brand');
+            initializeAjaxSelect2('#categoryId', `{{ route('product.getCategory') }}`, 'All Category',
+                'All Category');
+
+            const loadInitialData = (url, elementId) => {
+                $.ajax({
+                    url: url,
+                    dataType: 'json',
+                    data: {
+                        page: 1
+                    },
+                    success: data => {
+                        if (data.data) {
+                            const options = data.data.map(item => new Option(item.name, item.id,
+                                false, false));
+                            $(elementId).append(options).trigger('change');
+                        }
+                    },
+                    error: () => console.error(`Error loading initial data for ${elementId}`)
+                });
+            };
         });
 
 
@@ -253,6 +307,10 @@
                         next: "<i class='ri-arrow-right-s-line'>"
                     },
                     processing: "<div class='spinner-border text-primary m-2' role='status'></div>",
+                    emptyTable: `<div style="text-align: center;">
+                        <img src="{{ asset('template/backend') }}/images/empty-data.png" alt="No Data Available" style="width:200px; height:auto;">
+                        <p>No data available in table</p>
+                     </div>`,
                 },
                 createdRow: function(row, data, dataIndex) {
                     // Menambahkan HTML ke dalam kolom info
@@ -269,6 +327,14 @@
                     $('[data-bs-toggle="tooltip"]').tooltip();
                     // Inisialisasi RateIt untuk semua elemen baru
                     $('.rateit').rateit();
+                    // Cek apakah ada data dan sembunyikan pagination jika tidak ada
+                    if (table.data().count() === 0) {
+                        $('.dataTables_paginate').hide();
+                        $('.dataTables_info').hide();
+                    } else {
+                        $('.dataTables_paginate').show();
+                        $('.dataTables_info').show();
+                    }
                 },
             });
 

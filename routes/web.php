@@ -28,6 +28,8 @@ Route::group(['middleware' => 'admin'], function () {
     Route::post('panel/admin/product/create-variants', [ProductController::class, 'create_variants'])->name('product.createVariants');
     Route::get('panel/admin/product/generate-item-code', [ProductController::class, 'generate_item_code'])->name('product.generateItemCode');
     Route::get('panel/admin/product/get-value/{id}', [ProductController::class, 'get_value'])->name('product.getValue');
+    Route::get('panel/admin/product/get-brand', [ProductController::class, 'get_brand'])->name('product.getBrand');
+    Route::get('panel/admin/product/get-category', [ProductController::class, 'get_category'])->name('product.getCategory');
     Route::get('panel/admin/product/sub-category/{id}', [ProductController::class, 'sub_category'])->name('product.subCategory');
     Route::resource('panel/admin/product', ProductController::class);
     // route category
