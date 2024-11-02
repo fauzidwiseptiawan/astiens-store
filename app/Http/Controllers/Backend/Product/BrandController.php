@@ -4,16 +4,24 @@ namespace App\Http\Controllers\Backend\Product;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use App\Scopes\ActiveScope;
+use App\Services\ImageUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\File;
 
 class BrandController extends Controller
 {
+    protected $imageUploadService;
+
+    public function __construct(ImageUploadService $imageUploadService)
+    {
+        $this->imageUploadService = $imageUploadService;
+    }
+
     function index()
     {
         return view('backend.brand.index');
@@ -22,7 +30,7 @@ class BrandController extends Controller
     function fetch()
     {
         // fetch brand
-        $brand = Brand::where('is_deleted', '0')->orderBy('id', 'ASC')->get();
+        $brand = Brand::withoutGlobalScope(ActiveScope::class)->get();
         // display result datatable
         return datatables()
             ->of($brand)
@@ -31,8 +39,8 @@ class BrandController extends Controller
                 return '<input type="checkbox" class="form-check-input select-form" id="select" name="select" value="' . $brand->id . '">';
             })
             ->addColumn('image', function ($brand) {
-                if ($brand == '') {
-                    return '<img src="' . asset('storage/upload/image/brand/thumbnail/' . $brand->image) . '" class="img-thumbnail" height="80" width="80" alt="' . asset('storage/upload/image/brand/' . $brand->image) . '">';
+                if ($brand != null && !empty($brand->image)) {
+                    return '<img src="' .  asset('storage/upload/image/brand/thumbnail/' . $brand->image) . '" class="img-thumbnail" height="80" width="80" alt="' . asset('storage/upload/image/brand/' . $brand->image) . '">';
                 } else {
                     return '<img src="https://placehold.co/400" class="img-thumbnail" height="80" width="80" alt="https://placehold.co/400">';
                 }
@@ -76,24 +84,21 @@ class BrandController extends Controller
             // check if validate by adding image
             if (!$request->hasFile('image') == "") {
                 $path = 'upload/image/brand';
-                $path_resize = 'upload/image/brand/thumbnail';
-                $file = $request->file('image');
-                $file_name = time() . '_' . $file->getClientOriginalName();
-                $file_size = $file->getSize();
-                $file_extension = $file->extension();
-                $file->storeAs($path, $file_name, 'public');
-                // resize image
-                $manager = new ImageManager(new Driver());
-                $resize_img = $manager->read($file);
-                $resize_img->resize(300, 300)->save($file);
-                $file->storeAs($path_resize, $file_name, 'public');
+                $pathResize = 'upload/image/brand/thumbnail';
+
+                // Menggunakan service untuk meng-upload dan meresize gambar
+                $fileInfo = $this->imageUploadService->uploadAndResize(
+                    $request->file('image'),
+                    $path,
+                    $pathResize
+                );
                 // validation is successful it is saved to the database
                 Brand::create([
                     'name' => $request->name,
                     'slug' => $request->slug,
-                    'image' => $file_name,
-                    'ext' =>  $file_extension,
-                    'size' =>  $file_size,
+                    'image' => $fileInfo['file_name'],
+                    'ext' => $fileInfo['file_extension'],
+                    'size' => $fileInfo['file_size'],
                     'created_by' =>  Auth::user()->id,
                     'created_at' =>  now(),
                 ]);
@@ -133,44 +138,41 @@ class BrandController extends Controller
                 'message' => $validator->errors()->toArray()
             ]);
         } else {
+            // Mendefinisikan path untuk gambar yang ada
+            $path_exist = 'storage/upload/image/brand/' . $brand->image;
+            $path_resize_exist = 'storage/upload/image/brand/thumbnail/' . $brand->image;
+
+            // Menghapus file gambar yang ada jika ada
+            if (File::exists($path_exist)) {
+                File::delete($path_exist);
+                File::delete($path_resize_exist);
+            }
             // check if validate by adding image
             if (!$request->hasFile('image') == "") {
-                $path_exist = 'storage/upload/image/brand/' . $brand->image;
-                $path_resize_exist = 'storage/upload/image/brand/thumbnail/' . $brand->image;
-
-                // check if there is an image file
-                if (File::exists($path_exist)) {
-                    File::delete($path_exist);
-                    File::delete($path_resize_exist);
-                }
+                // Mendefinisikan path untuk menyimpan gambar baru
                 $path = 'upload/image/brand';
                 $path_resize = 'upload/image/brand/thumbnail';
-                $file = $request->file('image');
-                $file_name = time() . '_' . $file->getClientOriginalName();
-                $file_size = $file->getSize();
-                $file_extension = $file->extension();
-                $upload =  $file->storeAs($path, $file_name, 'public');
-                // resize image
-                $manager = new ImageManager(new Driver());
-                $resize_img = $manager->read($file);
-                $resize_img->resize(300, 300)->save($file);
-                $upload = $file->storeAs($path_resize, $file_name, 'public');
-                // validation is successful it is saved to the database
-                if ($upload) {
-                    $brand->update([
-                        'name' => $request->name,
-                        'slug' => $request->slug,
-                        'image' => $file_name,
-                        'ext' =>  $file_extension,
-                        'size' =>  $file_size,
-                        'updated_by' =>  Auth::user()->id,
-                        'updated_at' =>  Carbon::now(),
-                    ]);
-                    return response()->json([
-                        'status'   => 200,
-                        'message'  => 'Update brand data was successful!'
-                    ]);
-                }
+
+                // Menggunakan service untuk meng-upload dan meresize gambar baru
+                $fileInfo = $this->imageUploadService->uploadAndResize(
+                    $request->file('image'),
+                    $path,
+                    $path_resize
+                );
+                // validation is successful it is saved to the database Update data di database dengan gambar baru
+                $brand->update([
+                    'name' => $request->name,
+                    'slug' => $request->slug,
+                    'image' => $fileInfo['file_name'],
+                    'ext' => $fileInfo['file_extension'],
+                    'size' => $fileInfo['file_size'],
+                    'updated_by' => Auth::user()->id,
+                    'updated_at' => Carbon::now(),
+                ]);
+                return response()->json([
+                    'status'   => 200,
+                    'message'  => 'Update brand data was successful!'
+                ]);
                 // check if validation is not by adding an image
             } else {
                 $brand->update([
@@ -184,6 +186,8 @@ class BrandController extends Controller
                     'message'  => 'Update brand data was successful!'
                 ]);
             }
+            // Hapus cache terkait
+            cache()->forget('cache_brand'); // Ini akan selalu terpanggil setelah update
         }
     }
 

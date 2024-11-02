@@ -539,14 +539,21 @@
                     $('#edtId').val(response.data.id);
                     $('#edtName').val(response.data.name);
                     $('#edtSlug').val(response.data.slug);
-                    $('#edtImagePreview').attr('src',
-                        `{{ URL::asset('storage/upload/image/brand/thumbnail/') }}/${response.data.image}`
-                    );
-                    var nameImage = response.data.image;
-                    var sizeImage = response.data.size;
-                    $('.edt-file-name').html(nameImage.substr(0, 10) + ".. ");
-                    $('.edt-file-format').html(response.data.ext);
-                    $('.edt-file-size').html(formatFileSize(sizeImage));
+                    if (response.data.image) {
+                        $('#edtImagePreview').attr('src',
+                            `{{ URL::asset('storage/upload/image/brand/thumbnail/') }}/${response.data.image}`
+                        );
+                        var nameImage = response.data.image;
+                        var sizeImage = response.data.size;
+                        $('.edt-file-name').html(nameImage.substr(0, 10) + ".. ");
+                        $('.edt-file-format').html(response.data.ext);
+                        $('.edt-file-size').html(formatFileSize(sizeImage));
+                        // Menampilkan edtPreviewImage jika ada gambar
+                        $('#edtPreviewImage').show();
+                    } else {
+                        // Jika tidak ada gambar, sembunyikan edtPreviewImage
+                        $('#edtPreviewImage').hide();
+                    }
                 }
             })
         })

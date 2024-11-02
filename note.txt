@@ -1,0 +1,9 @@
+Jika Anda ingin mengabaikan scope pada query tertentu, gunakan withoutGlobalScope
+
+$brandsWithoutScope = Brand::withoutGlobalScope(ActiveOrNotDeletedScope::class)->get();
+
+Jika ingin menggunakan cache
+
+$your_model = Cache::remember('cache_your_model', 60 * 60, function () {
+    return Your_model::withoutGlobalScope(ActiveScope::class)->get();
+});
