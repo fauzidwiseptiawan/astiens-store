@@ -15,9 +15,13 @@ class ImageUploadService
      * @param UploadedFile $file
      * @param string $path
      * @param string $pathResize
+     * @param string $pathResize
+     * @param int $width
+     * @param int $heigh
+     * @param string $id
      * @return array Berisi nama file, ukuran, dan ekstensi
      */
-    public function uploadAndResize(UploadedFile $file, string $path, string $pathResize, int $width = 300, int $height = 300, int $quality = 75, ?int $id = null)
+    public function uploadAndResize(UploadedFile $file, string $path, string $pathResize, int $width = 300, int $height = 300, int $quality = 75, ?string $id = null)
     {
         // Membangun nama file
         $fileName = ($id ? $id . '_' : '') . time() . '_' . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '.webp';

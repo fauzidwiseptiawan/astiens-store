@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Scopes\ActiveScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 class AttributesValue extends Model
 {
     use HasFactory, HasUuids;
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new ActiveScope);
+    }
 
     public $incrementing = false;   // Menonaktifkan auto-increment
     public $timestamps = false;

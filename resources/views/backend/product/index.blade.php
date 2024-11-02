@@ -117,40 +117,48 @@
         $('.activeProduct').addClass('menuitem-active')
         $('#activeProduct').addClass('menuitem-active');
 
+        // Select option
+        $(document).ready(function() {
+            const selectElements = ['.status', '.shortBy'];
+
+            selectElements.forEach(function(selector) {
+                $(selector).select2({
+                    placeholder: `Select ${selector.replace('.', '').replace(/([A-Z])/g, ' $1').trim()}`,
+                    allowClear: false,
+                });
+            });
+        });
+
 
         $(document).ready(function() {
-            const initializeSelect2 = (selector, placeholderText) => {
-                $(selector).select2({
-                    placeholder: placeholderText,
-                    allowClear: false
-                });
-            };
-
-            initializeSelect2('.status', 'All Status');
-            initializeSelect2('.shortBy', 'Order By');
-
-            const select2Settings = (url, placeholderText, allText) => ({
-                placeholder: placeholderText,
+            // Inisialisasi Select2 untuk Brand
+            $('#brandId').select2({
+                placeholder: 'All Brand',
                 allowClear: false,
                 ajax: {
-                    url: url,
+                    url: `{{ route('product.getBrand') }}`, // URL endpoint untuk data Brand
                     dataType: 'json',
                     delay: 250,
-                    data: params => ({
-                        q: params.term,
-                        page: params.page || 1
-                    }),
-                    processResults: (data, params) => {
+                    data: function(params) {
+                        return {
+                            q: params.term, // Kata kunci pencarian
+                            page: params.page || 1 // Halaman yang diminta
+                        };
+                    },
+                    processResults: function(data, params) {
                         params.page = params.page || 1;
+
+                        // Memproses hasil pencarian Brand
                         const results = data.data.map(item => ({
                             id: item.id,
                             text: item.name
                         })) || [];
 
+                        // Menyisipkan opsi "All Brand" hanya pada halaman pertama
                         if (params.page === 1) {
                             results.unshift({
                                 id: 0,
-                                text: allText
+                                text: 'All Brand'
                             });
                         }
 
@@ -164,39 +172,112 @@
                     cache: true
                 },
                 minimumInputLength: 0,
-                templateResult: item => $('<span>').text(item.text),
-                templateSelection: item => item.text
+                templateResult: function(item) {
+                    return item.text ? $('<span>' + item.text + '</span>') : item.text;
+                },
+                templateSelection: function(item) {
+                    return item.text;
+                }
             });
 
-            const initializeAjaxSelect2 = (selector, route, placeholderText, allText) => {
-                $(selector).select2(select2Settings(route, placeholderText, allText));
-                $(selector).on('select2:open', function() {
-                    loadInitialData(route, selector);
-                });
-            };
+            // Inisialisasi Select2 untuk Category
+            $('#categoryId').select2({
+                placeholder: 'All Category',
+                allowClear: false,
+                ajax: {
+                    url: `{{ route('product.getCategory') }}`, // URL endpoint untuk data Category
+                    dataType: 'json',
+                    delay: 250,
+                    data: function(params) {
+                        return {
+                            q: params.term,
+                            page: params.page || 1
+                        };
+                    },
+                    processResults: function(data, params) {
+                        params.page = params.page || 1;
 
-            // Inisialisasi Select2 untuk Brand dan Category dengan URL Laravel yang sudah langsung disisipkan
-            initializeAjaxSelect2('#brandId', `{{ route('product.getBrand') }}`, 'All Brand', 'All Brand');
-            initializeAjaxSelect2('#categoryId', `{{ route('product.getCategory') }}`, 'All Category',
-                'All Category');
+                        // Memproses hasil pencarian Category
+                        const results = data.data.map(item => ({
+                            id: item.id,
+                            text: item.name
+                        })) || [];
 
-            const loadInitialData = (url, elementId) => {
+                        // Menyisipkan opsi "All Category" hanya pada halaman pertama
+                        if (params.page === 1) {
+                            results.unshift({
+                                id: 0,
+                                text: 'All Category'
+                            });
+                        }
+
+                        return {
+                            results: results,
+                            pagination: {
+                                more: (params.page * 10) < data.total
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0,
+                templateResult: function(item) {
+                    return item.text ? $('<span>' + item.text + '</span>') : item.text;
+                },
+                templateSelection: function(item) {
+                    return item.text;
+                }
+            });
+
+            // Memuat data brand dan category saat inisialisasi
+            loadInitialBrands();
+            loadInitialCategories();
+
+            function loadInitialBrands() {
                 $.ajax({
-                    url: url,
+                    url: `{{ route('product.getBrand') }}`,
                     dataType: 'json',
                     data: {
                         page: 1
                     },
-                    success: data => {
+                    success: function(data) {
                         if (data.data) {
-                            const options = data.data.map(item => new Option(item.name, item.id,
-                                false, false));
-                            $(elementId).append(options).trigger('change');
+                            data.data.forEach(function(item) {
+                                const newOption = new Option(item.name, item.id,
+                                    false, false);
+                                $('#brandId').append(newOption);
+                            });
                         }
+                        $('#brandId').trigger('change');
                     },
-                    error: () => console.error(`Error loading initial data for ${elementId}`)
+                    error: function() {
+                        console.error('Error loading initial brands');
+                    }
                 });
-            };
+            }
+
+            function loadInitialCategories() {
+                $.ajax({
+                    url: `{{ route('product.getCategory') }}`,
+                    dataType: 'json',
+                    data: {
+                        page: 1
+                    },
+                    success: function(data) {
+                        if (data.data) {
+                            data.data.forEach(function(item) {
+                                const newOption = new Option(item.name, item.id,
+                                    false, false);
+                                $('#categoryId').append(newOption);
+                            });
+                        }
+                        $('#categoryId').trigger('change');
+                    },
+                    error: function() {
+                        console.error('Error loading initial categories');
+                    }
+                });
+            }
         });
 
 
@@ -386,10 +467,11 @@
                 }
             });
 
-            // Menambahkan event listener untuk klik baris
-            $('#tableProduct tbody').on('click', 'tr', function() {
-                var tr = $(this);
-                var row = table.row(tr);
+            // Menambahkan event listener untuk klik pada expand-icon
+            $('#tableProduct tbody').on('click', '.expand-icon', function(e) {
+                e.stopPropagation(); // Mencegah event bubble ke tr
+                var tr = $(this).closest('tr'); // Ambil baris terdekat
+                var row = table.row(tr); // Ambil data row
 
                 // Panggil fungsi untuk menangani ekspansi baris
                 handleExpandRow(row, tr);
@@ -409,6 +491,12 @@
                     tr.find('.expand-icon').removeClass('ri-add-line').addClass('ri-subtract-line'); // Ganti ikon
                 }
             }
+
+            // Jika Anda ingin memastikan baris tidak dapat di-expand dengan klik pada baris itu sendiri,
+            // Anda dapat menghapus atau menonaktifkan event listener untuk baris:
+            $('#tableProduct tbody').on('click', 'tr', function(e) {
+                e.stopPropagation(); // Mencegah event bubble ke parent
+            });
 
             // Fungsi untuk membuat konten child row
             function createChildRowContent(data) {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Scopes\ActiveScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Traits\HasUuid;
@@ -10,6 +11,11 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasUuid;
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new ActiveScope);
+    }
 
     public $incrementing = false;   // Menonaktifkan auto-increment
     protected $keyType = 'string'; // Mengubah tipe kunci menjadi string

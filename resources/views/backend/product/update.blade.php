@@ -1,5 +1,5 @@
 @extends('backend.layouts.master')
-@section('title', 'Add Product')
+@section('title', 'Product')
 @push('styles')
     <style>
         .child-row {
@@ -44,8 +44,8 @@
                 <div class="page-title-box">
                     <div class="page-title-right">
                         <ol class="breadcrumb m-0">
-                            <li class="breadcrumb-item"><a href="{{ route('product.index') }}">All Product</a></li>
-                            <li class="breadcrumb-item active">@yield('title')</li>
+                            <li class="breadcrumb-item"><a href="javascript: void(0);">@yield('title')</a></li>
+                            <li class="breadcrumb-item active">All @yield('title')</li>
                         </ol>
                     </div>
                     <h4 class="page-title">@yield('title')</h4>
@@ -291,9 +291,6 @@
                                 <select class="form-control choice_attributes" data-toggle="choice_attributes"
                                     name="choice_attributes[]" id="choiseAttributes" multiple="multiple">
                                     <option></option>
-                                    @foreach ($attributes as $item)
-                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                    @endforeach
                                 </select>
                             </div>
                             <p class="mt-2 mb-2">Choose the attributes of this product and then input attribute of each

@@ -15,13 +15,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 use App\Services\ImageUploadService;
 use App\Helpers\NumberFormatter;
 use App\Scopes\ActiveScope;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -347,7 +344,9 @@ class ProductController extends Controller
             ->addColumn('action', function ($product) {
                 return ' <div class="d-flex flex-wrap gap-2">
                             <button type="button" id="view" value="' . $product->id . '"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="success-tooltip" data-bs-title="View" class="btn btn-circle btn-soft-success btn-sm"><i class="ri-eye-fill"></i></button>
-							<button type="button" id="show" value="' . $product->id . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="warning-tooltip" data-bs-title="Edit" class="btn btn-circle btn-soft-warning btn-sm"><i class="ri-pencil-fill"></i></button>
+                            <a href="' . route('product.show', ['product' => $product->id]) . '">
+							    <button type="button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="warning-tooltip" data-bs-title="Edit" class="btn btn-circle btn-soft-warning btn-sm"><i class="ri-pencil-fill"></i></button>
+                            </a>
                             <button type="button" id="destroySoft" value="' . $product->id . '"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="danger-tooltip" data-bs-title="Delete" class="btn btn-circle btn-soft-danger btn-sm"><i class="ri-delete-bin-5-line"></i></button>
 					</div>';
             })
@@ -357,22 +356,8 @@ class ProductController extends Controller
 
     function create()
     {
-        // Mendapatkan data attributes dari cache atau database
-        $attributes = Cache::remember('active_attributes', 60, function () {
-            return Attributes::orderBy('name', 'ASC')->get();
-        });
-
-        // Mendapatkan data brand dari cache atau database
-        $brand = Cache::remember('active_brands', 60, function () {
-            return Brand::orderBy('name', 'ASC')->get();
-        });
-
-        // Mendapatkan data category dari cache atau database
-        $category = Cache::remember('active_categories', 60, function () {
-            return Category::orderBy('name', 'ASC')->get();
-        });
-
-        return view('backend.product.add', compact('attributes', 'brand', 'category'));
+        $attributes = Attributes::orderBy('name', 'ASC')->get();
+        return view('backend.product.add', compact('attributes'));
     }
 
     function store(Request $request)
@@ -397,9 +382,9 @@ class ProductController extends Controller
                 'is_active'         => 'required',
                 'tags'              => 'required',
                 'image1'            => 'required|image|mimes:jpeg,jpg,png,gif|max:2048', // 2MB Max
-                'price'             => 'required_if:is_variant,0|min:0',
-                'stock'             => 'required_if:is_variant,0|integer|min:0',
-                'sku'               => 'required_if:is_variant,0|string|max:255',
+                // 'price'             => 'required_if:is_variant,0|min:0',
+                // 'stock'             => 'required_if:is_variant,0|min:0',
+                // 'sku'               => 'required_if:is_variant,0|max:255',
                 'is_variant'        => 'required|boolean',
             ],
 
@@ -456,6 +441,7 @@ class ProductController extends Controller
                 $product->seo_title = $request->seo_title;
                 $product->seo_desc = $request->seo_desc;
                 $product->is_active = $request->is_active;
+                $product->is_variant = $request->is_variant;
                 $product->hot = $request->hot;
                 $product->new = $request->new;
                 $product->sale = $request->sale;
@@ -468,35 +454,15 @@ class ProductController extends Controller
                     $path = 'upload/image/product';
                     $pathResize = 'upload/image/product/thumbnail';
 
-                    // Ambil file yang diupload
-                    $imageFile = $request->file('image1');
-
-                    // Simpan file ke lokasi sementara
-                    $tempPath = 'temp/' . $imageFile->getClientOriginalName();
-                    $imageFile->move('temp', $imageFile->getClientOriginalName());
-
-                    try {
-                        // Menggunakan service untuk meng-upload dan meresize gambar
-                        $fileInfo = $this->imageUploadService->uploadAndResize(
-                            $request->file('image'),
-                            $path,
-                            $pathResize
-                        );
-
-                        if ($fileInfo) {
-                            $product->image = $fileInfo['file_name'];
-                            $product->ext = $fileInfo['file_extension'];
-                            $product->size = $fileInfo['file_size'];
-                        } else {
-                            // Jika upload gagal, hapus file sementara
-                            unlink($tempPath);
-                            throw new \Exception('Failed to upload the main image.');
-                        }
-                    } catch (\Throwable $e) {
-                        // Jika terjadi kesalahan, hapus file sementara
-                        unlink($tempPath);
-                        throw $e; // Lempar exception untuk ditangani di blok catch luar
-                    }
+                    // Menggunakan service untuk meng-upload dan meresize gambar
+                    $fileInfo = $this->imageUploadService->uploadAndResize(
+                        $request->file('image'),
+                        $path,
+                        $pathResize
+                    );
+                    $product->image = $fileInfo['file_name'];
+                    $product->ext = $fileInfo['file_extension'];
+                    $product->size = $fileInfo['file_size'];
                 }
 
                 // Simpan ke database
@@ -533,34 +499,16 @@ class ProductController extends Controller
                                 $path = 'upload/image/product/variant';
                                 $pathResize = 'upload/image/product/variant/thumbnail';
 
-                                // Ambil file yang diupload
-                                $imageFile = $request->file("variant_image.$index");
+                                // Menggunakan service untuk meng-upload dan meresize gambar
+                                $fileInfo = $this->imageUploadService->uploadAndResize(
+                                    $request->file("variant_image.$index"),
+                                    $path,
+                                    $pathResize
+                                );
 
-                                // Simpan file ke lokasi sementara
-                                $tempPath = 'temp/' . $imageFile->getClientOriginalName();
-                                $imageFile->move('temp', $imageFile->getClientOriginalName());
-
-                                try {
-                                    // Menggunakan service untuk meng-upload dan meresize gambar
-                                    $fileInfo = $this->imageUploadService->uploadAndResize(
-                                        $request->file("variant_image.$index"),
-                                        $path,
-                                        $pathResize
-                                    );
-                                    if ($fileInfo) {
-                                        $variant->image = $fileInfo['file_name'];
-                                        $variant->ext = $fileInfo['file_extension'];
-                                        $variant->size = $fileInfo['file_size'];
-                                    } else {
-                                        // Jika upload gagal, hapus file sementara
-                                        unlink($tempPath);
-                                        throw new \Exception('Failed to upload the main image.');
-                                    }
-                                } catch (\Throwable $e) {
-                                    // Jika terjadi kesalahan, hapus file sementara
-                                    unlink($tempPath);
-                                    throw $e; // Lempar exception untuk ditangani di blok catch luar
-                                }
+                                $variant->image = $fileInfo['file_name'];
+                                $variant->ext = $fileInfo['file_extension'];
+                                $variant->size = $fileInfo['file_size'];
                             }
 
                             // Simpan varian ke database
@@ -582,53 +530,33 @@ class ProductController extends Controller
                         if ($image_multiple->isValid()) {
                             $path = 'upload/image/product/gallery';
                             $pathResize = 'upload/image/product/gallery/thumbnail';
-
                             // costume resize
                             $width = 300;
                             $height = 300;
                             // costume quality image
                             $quality = 75;
-                            // getid on name image
+                            // getid on name
                             $id = $product->id;
 
-                            // Simpan file ke lokasi sementara
-                            $tempPathGallery  = 'temp/' . $image_multiple->getClientOriginalName();
-                            $image_multiple->move('temp', $image_multiple->getClientOriginalName());
-
-                            try {
-                                // Menggunakan service untuk meng-upload dan meresize gambar
-                                $fileToGallery  = $this->imageUploadService->uploadAndResize(
-                                    $image_multiple,
-                                    $path,
-                                    $pathResize,
-                                    $width,
-                                    $height,
-                                    $quality,
-                                    $product->id
-                                );
-
-                                if ($fileToGallery) {
-                                    // validation is successful it is saved to the database
-                                    ProductImage::create([
-                                        'product_id' => $product->id,
-                                        'image'      => $fileToGallery['file_name'],
-                                        'ext'        => $fileToGallery['file_extension'],
-                                        'size'       => $fileToGallery['file_size'],
-                                        'created_by' => Auth::user()->id,
-                                        'created_at' => now(),
-                                    ]);
-                                } else {
-                                    // Jika upload galeri gagal, hapus gambar produk dan file sementara
-                                    unlink($tempPath); // Hapus gambar produk
-                                    unlink($tempPathGallery); // Hapus gambar galeri sementara
-                                    throw new \Exception('Failed to upload the main image.');
-                                }
-                            } catch (\Throwable $e) {
-                                // Jika terjadi kesalahan, hapus gambar produk dan file galeri sementara
-                                unlink($tempPath); // Hapus gambar produk
-                                unlink($tempPathGallery); // Hapus gambar galeri sementara
-                                throw $e; // Lempar exception untuk ditangani di blok catch luar
-                            }
+                            // Menggunakan service untuk meng-upload dan meresize gambar
+                            $fileInfo = $this->imageUploadService->uploadAndResize(
+                                $image_multiple,
+                                $path,
+                                $pathResize,
+                                $width,
+                                $height,
+                                $quality,
+                                $id
+                            );
+                            // validation is successful it is saved to the database
+                            ProductImage::create([
+                                'product_id' => $product->id,
+                                'image'      => $fileInfo['file_name'],
+                                'ext'        => $fileInfo['file_extension'],
+                                'size'       => $fileInfo['file_size'],
+                                'created_by' => Auth::user()->id,
+                                'created_at' => now(),
+                            ]);
                         }
                     }
                 }
@@ -649,5 +577,12 @@ class ProductController extends Controller
                 ]);
             }
         }
+    }
+
+    function show($id)
+    {
+        $product = Product::find($id);
+
+        return view('backend.product.update', compact('product'));
     }
 }
