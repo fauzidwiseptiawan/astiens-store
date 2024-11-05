@@ -11,8 +11,8 @@ class ActiveScope implements Scope
     public function apply(Builder $builder, Model $model)
     {
         $builder->where(function ($query) {
-            $query->where('is_deleted', '0')
-                ->orWhere('is_active', '1');
+            $query->where('is_deleted', 0)
+                ->orWhere('is_active', 1);
         })->orderBy('id', 'ASC');
     }
 }

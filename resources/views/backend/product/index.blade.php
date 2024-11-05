@@ -347,7 +347,7 @@
                     },
                     {
                         data: 'name',
-                        width: "40%",
+                        width: "35%",
                         sortable: false,
                     },
                     {
@@ -360,7 +360,7 @@
                         data: 'stock',
                         searchable: false,
                         sortable: false,
-                        width: "15%",
+                        width: "20%",
                     },
                     {
                         data: 'action',

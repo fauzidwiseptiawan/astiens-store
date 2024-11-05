@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend\Product;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\SubCategory;
+use App\Scopes\ActiveScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -14,14 +15,14 @@ class SubCategoryController extends Controller
 {
     function index()
     {
-        $category = Category::where('is_active', '1')->orderBy('name', 'ASC')->get();
+        $category = Category::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
         return view('backend.sub_category.index', compact('category'));
     }
 
     function fetch()
     {
         // fetch category
-        $sub_category = SubCategory::where('is_deleted', '0')->orderBy('id', 'ASC')->get();
+        $sub_category = SubCategory::withoutGlobalScope(ActiveScope::class)->orderBy('id', 'ASC')->get();
         // display result datatable
         return datatables()
             ->of($sub_category)
@@ -89,7 +90,7 @@ class SubCategoryController extends Controller
     function show($id)
     {
         $sub_category = SubCategory::find($id);
-        $category = Category::all();
+        $category = Category::withoutGlobalScope(ActiveScope::class)->get();
         return response()->json([
             'status'       => 200,
             'message'      => 'Modal show!',
@@ -145,7 +146,7 @@ class SubCategoryController extends Controller
         foreach ($request->id as $id) {
             $sub_category = SubCategory::find($id);
             $sub_category->update([
-                'is_deleted' => '1',
+                'is_deleted' => 1,
                 'deleted_by' =>  Auth::user()->id,
                 'deleted_at' =>  Carbon::now(),
             ]);
@@ -160,7 +161,7 @@ class SubCategoryController extends Controller
     {
         $sub_category = SubCategory::find($id);
         $sub_category->update([
-            'is_deleted' => '1',
+            'is_deleted' => 1,
             'deleted_by' =>  Auth::user()->id,
             'deleted_at' =>  Carbon::now(),
         ]);

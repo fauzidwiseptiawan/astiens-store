@@ -31,6 +31,7 @@ Route::group(['middleware' => 'admin'], function () {
     Route::get('panel/admin/product/get-brand', [ProductController::class, 'get_brand'])->name('product.getBrand');
     Route::get('panel/admin/product/get-category', [ProductController::class, 'get_category'])->name('product.getCategory');
     Route::get('panel/admin/product/sub-category/{id}', [ProductController::class, 'sub_category'])->name('product.subCategory');
+    Route::get('panel/admin/product/get-variants/{id}', [ProductController::class, 'get_variants'])->name('product.getVariants');
     Route::resource('panel/admin/product', ProductController::class);
     // route category
     Route::get('panel/admin/category/fetch', [CategoryController::class, 'fetch'])->name('category.fetch');

@@ -39,7 +39,7 @@ class ProductController extends Controller
     function get_brand(Request $request)
     {
         try {
-            $query = Brand::query();
+            $query = Brand::query()->withoutGlobalScope(ActiveScope::class);
 
             if ($request->has('q')) {
                 $query->where('name', 'like', '%' . $request->q . '%');
@@ -65,7 +65,7 @@ class ProductController extends Controller
     function get_category(Request $request)
     {
         try {
-            $query = Category::query();
+            $query = Category::query()->withoutGlobalScope(ActiveScope::class);
 
             if ($request->has('q')) {
                 $query->where('name', 'like', '%' . $request->q . '%');
@@ -91,7 +91,7 @@ class ProductController extends Controller
     function get_value($id)
     {
         try {
-            $value = AttributesValue::where('attributes_id', $id)->orderBy('name', 'ASC')->get();
+            $value = AttributesValue::withoutGlobalScope(ActiveScope::class)->where('attributes_id', $id)->orderBy('name', 'ASC')->get();
             return response()->json([
                 'status'       => 200,
                 'message'      => 'success',
@@ -132,7 +132,7 @@ class ProductController extends Controller
     function sub_category($id)
     {
         try {
-            $value = SubCategory::where('category_id', $id)->orderBy('name', 'ASC')->get();
+            $value = SubCategory::withoutGlobalScope(ActiveScope::class)->where('category_id', $id)->orderBy('name', 'ASC')->get();
             return response()->json([
                 'status'       => 200,
                 'message'      => 'success',
@@ -193,9 +193,8 @@ class ProductController extends Controller
 
     function fetch(Request $request)
     {
-
         // Mengambil produk tanpa cache
-        $products = Product::with(['brand', 'category', 'variants'])
+        $products = Product::withoutGlobalScope(ActiveScope::class)->with(['brand', 'category', 'variants'])->orderBy('item_code', 'desc')
             ->when($request->filled('search') && !empty($request->search['value']), function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search['value'] . '%');
             })
@@ -216,12 +215,21 @@ class ProductController extends Controller
                 return '<input type="checkbox" class="form-check-input select-form" id="select" name="select" value="' . $product->id . '">';
             })
             ->addColumn('name', function ($product) {
-                return '<div class="d-flex p-1">
-		                   <img src="' . asset('storage/upload/image/product/thumbnail/' . $product->image) . '" class="me-2 img-fluid avatar-md rounded" height="80" alt="Arya Stark" />
-		                        <div class="w-100">
-		                            <p class="mt-0">' . $product->name . ' </p>
-		                        </div>
-		                </div>';
+                if ($product != null && !empty($product->image)) {
+                    return '<div class="d-flex p-1">
+                    <img src="' . asset('storage/upload/image/product/thumbnail/' . $product->image) . '" class="me-2 img-fluid avatar-md rounded" height="80" width="80" alt="' . $product->name . '" />
+                         <div class="w-100">
+                             <p class="mt-0 ms-2"">' . $product->name . ' </p>
+                         </div>
+                 </div>';
+                } else {
+                    return '<div class="d-flex p-1">
+                    <img src="https://placehold.co/100" class="img-thumbnail" class="me-2 img-fluid avatar-md rounded" height="80" width="80" alt="https://placehold.co/100" class="img-thumbnail" />
+                         <div class="w-100">
+                             <p class="mt-0 ms-2"">' . $product->name . ' </p>
+                         </div>
+                 </div>';
+                }
             })
             ->addColumn('brand', function ($product) {
                 return $product->brand->name;
@@ -356,7 +364,7 @@ class ProductController extends Controller
 
     function create()
     {
-        $attributes = Attributes::orderBy('name', 'ASC')->get();
+        $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
         return view('backend.product.add', compact('attributes'));
     }
 
@@ -579,10 +587,29 @@ class ProductController extends Controller
         }
     }
 
+    function get_variants($productId)
+    {
+        $variants = ProductVariant::where('product_id', $productId)->get();
+        return response()->json(['variants' => $variants]);
+    }
+
+
+
     function show($id)
     {
-        $product = Product::find($id);
+        $product = Product::with(['variants', 'images'])->find($id);
+        $attribute = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
+        $firstVariant = $product->variants->pluck('variant')->first();
+        $existingAttributes = explode(" - ", $firstVariant);
+        // Initialize dateRange as an empty string
+        $dateRange = '';
 
-        return view('backend.product.update', compact('product'));
+        // Check if both discount dates are set
+        if (!empty($product->discount_start_date) && !empty($product->discount_end_date)) {
+            // If both dates are present, combine them into a single string
+            $dateRange = $product->discount_start_date . ' to ' . $product->discount_end_date;
+        }
+
+        return view('backend.product.update', compact('product', 'dateRange', 'attribute', 'existingAttributes'));
     }
 }

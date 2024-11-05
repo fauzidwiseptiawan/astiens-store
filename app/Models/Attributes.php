@@ -5,8 +5,6 @@ namespace App\Models;
 use App\Scopes\ActiveScope;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
-use Ramsey\Uuid\Uuid;
-use Illuminate\Support\Str;
 
 class Attributes extends Model
 {

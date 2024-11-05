@@ -18,8 +18,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('avatar')->nullable();
-            $table->enum('is_active', [0, 1])->default(1);
-            $table->enum('is_deleted', [0, 1])->default(0);
+            $table->tinyInteger('is_active')->default(1);
+            $table->tinyInteger('is_deleted')->default(0);
             $table->rememberToken();
             $table->timestamp('created_at')->useCurrent();
             $table->string('created_by')->nullable();

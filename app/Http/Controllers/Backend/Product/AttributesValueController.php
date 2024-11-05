@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend\Product;
 use App\Http\Controllers\Controller;
 use App\Models\AttributesValue;
 use App\Models\Attributes;
+use App\Scopes\ActiveScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Carbon;
@@ -15,14 +16,14 @@ class AttributesValueController extends Controller
     function index(Request $request)
     {
         $uri = $request->query('id');;
-        $attributes = Attributes::where('is_active', '1')->orderBy('name', 'ASC')->get();
+        $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
         return view('backend.attributes.attributes_value.index', compact('attributes', 'uri'));
     }
 
     function fetch($id)
     {
         // fetch attributes
-        $attributes = AttributesValue::where('attributes_id', $id)->where('is_deleted', '0')->orderBy('id', 'ASC')->get();
+        $attributes = AttributesValue::withoutGlobalScope(ActiveScope::class)->where('attributes_id', $id)->orderBy('id', 'ASC')->get();
         // display result datatable
         return datatables()
             ->of($attributes)
@@ -141,7 +142,7 @@ class AttributesValueController extends Controller
         foreach ($request->id as $id) {
             $attributes = AttributesValue::find($id);
             $attributes->update([
-                'is_deleted' => '1',
+                'is_deleted' => 1,
                 'deleted_by' =>  Auth::user()->id,
                 'deleted_at' =>  Carbon::now(),
             ]);
@@ -156,7 +157,7 @@ class AttributesValueController extends Controller
     {
         $attributes = AttributesValue::find($id);
         $attributes->update([
-            'is_deleted' => '1',
+            'is_deleted' => 1,
             'deleted_by' =>  Auth::user()->id,
             'deleted_at' =>  Carbon::now(),
         ]);

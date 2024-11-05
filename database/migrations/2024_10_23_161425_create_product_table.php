@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('slugs')->nullable();
             $table->string('unit')->nullable()->default('g'); // Atau gunakan 'enum' untuk membatasi pilihan
-            $table->string('weight')->nullable();
+            $table->smallInteger('weight')->nullable();
             $table->integer('min_qty')->default(0)->nullable();
             $table->integer('max_qty')->nullable();
             $table->string('barcode')->nullable();
@@ -38,17 +38,17 @@ return new class extends Migration
             $table->text('tags')->nullable();
             $table->string('seo_title')->nullable();
             $table->string('seo_desc')->nullable();
-            $table->enum('new_arrival', [0, 1])->default(0);
-            $table->enum('best_seller', [0, 1])->default(0);
-            $table->enum('special_offer', [0, 1])->default(0);
-            $table->enum('hot', [0, 1])->default(0);
-            $table->enum('new', [0, 1])->default(0);
-            $table->enum('sale', [0, 1])->default(0);
-            $table->string('is_active')->nullable();
-            $table->enum('is_deleted', [0, 1])->default(0);
-            $table->enum('is_variant', [0, 1])->default(0);
-            $table->enum('is_feature', [0, 1])->default(0);
-            $table->enum('refundable', [0, 1])->default(0);
+            $table->enum('new_arrival', ['No', 'Yes'])->default('No');
+            $table->enum('best_seller', ['No', 'Yes'])->default('No');
+            $table->enum('special_offer', ['No', 'Yes'])->default('No');
+            $table->enum('hot', ['No', 'Yes'])->default('No');
+            $table->enum('new', ['No', 'Yes'])->default('No');
+            $table->enum('sale', ['No', 'Yes'])->default('No');
+            $table->tinyInteger('is_active')->default(1);
+            $table->tinyInteger('is_deleted')->default(0);
+            $table->tinyInteger('is_variant')->default(0);
+            $table->tinyInteger('is_feature')->default(0);
+            $table->tinyInteger('refundable')->default(0);
             $table->timestamp('created_at')->useCurrent();
             $table->string('created_by')->nullable();
             $table->timestamp('updated_at')->nullable();

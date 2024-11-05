@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\Product;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Scopes\ActiveScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +29,7 @@ class CategoryController extends Controller
     function fetch()
     {
         // fetch category
-        $category = Category::where('is_deleted', '0')->orderBy('id', 'ASC')->get();
+        $category = Category::withoutGlobalScope(ActiveScope::class)->orderBy('id', 'ASC')->get();
         // display result datatable
         return datatables()
             ->of($category)
@@ -216,7 +217,7 @@ class CategoryController extends Controller
         foreach ($request->id as $id) {
             $category = Category::find($id);
             $category->update([
-                'is_deleted' => '1',
+                'is_deleted' => 1,
                 'deleted_by' =>  Auth::user()->id,
                 'updated_at' =>  Carbon::now(),
             ]);
@@ -231,7 +232,7 @@ class CategoryController extends Controller
     {
         $category = Category::find($id);
         $category->update([
-            'is_deleted' => '1',
+            'is_deleted' => 1,
             'deleted_by' =>  Auth::user()->id,
             'updated_at' =>  Carbon::now(),
         ]);

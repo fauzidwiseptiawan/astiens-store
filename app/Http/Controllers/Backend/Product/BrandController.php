@@ -208,7 +208,7 @@ class BrandController extends Controller
         foreach ($request->id as $id) {
             $brand = Brand::find($id);
             $brand->update([
-                'is_deleted' => '1',
+                'is_deleted' => 1,
                 'deleted_by' =>  Auth::user()->id,
                 'updated_at' =>  Carbon::now(),
             ]);
@@ -223,7 +223,7 @@ class BrandController extends Controller
     {
         $brand = Brand::find($id);
         $brand->update([
-            'is_deleted' => '1',
+            'is_deleted' => 1,
             'deleted_by' =>  Auth::user()->id,
             'updated_at' =>  Carbon::now(),
         ]);

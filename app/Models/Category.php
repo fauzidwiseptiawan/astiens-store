@@ -44,4 +44,9 @@ class Category extends Model
         'deleted_at',
         'deleted_by',
     ];
+
+    public function subCategory()
+    {
+        return $this->hasMany(SubCategory::class, 'category_id');
+    }
 }

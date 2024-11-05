@@ -21,8 +21,8 @@ return new class extends Migration
             $table->text('image')->nullable();
             $table->string('ext')->nullable();
             $table->string('size')->nullable();
-            $table->enum('is_active', [0, 1])->default(1);
-            $table->enum('is_deleted', [0, 1])->default(0);
+            $table->tinyInteger('is_active')->default(1);
+            $table->tinyInteger('is_deleted')->default(0);
             $table->timestamp('created_at')->useCurrent();
             $table->uuid('created_by')->nullable();
             $table->timestamp('updated_at')->nullable();
