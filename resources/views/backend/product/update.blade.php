@@ -305,10 +305,10 @@
                             <div class="col-lg-9">
                                 <select class="form-control choice_attributes" data-toggle="choice_attributes"
                                     name="choice_attributes[]" id="choiseAttributes" multiple="multiple">
-                                    @foreach ($attribute as $attr)
-                                        <option value="{{ $attr->name }}"
-                                            @if (in_array($attr->name, $existingAttributes)) selected @endif>
-                                            {{ $attr->name }}
+                                    @foreach ($attributes as $attribute)
+                                        <option value="{{ $attribute->id }}"
+                                            @if (in_array($attribute->id, $selectedAttributeIds)) selected @endif>
+                                            {{ $attribute->name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -317,6 +317,32 @@
                                 attribute
                             </p>
                             <div class="value-attributes">
+                                <!-- Di sini akan tampilkan attribute-row secara dinamis -->
+                                @foreach ($attributes as $attribute)
+                                    @if (in_array($attribute->id, $selectedAttributeIds))
+                                        <div class="row mt-2" id="attribute-row">
+                                            <div class="col-lg-3">
+                                                <input type="text" class="form-control"
+                                                    value="{{ $attribute->name }}" disabled>
+                                            </div>
+                                            <div class="col-lg-9">
+                                                @if (!empty($attributeValues[$attribute->id]))
+                                                    <select class="form-control attributes attributes_choise"
+                                                        id="attributesChoise" multiple="multiple"
+                                                        data-value="{{ $attribute->name }}">
+                                                        @foreach ($attributeValues[$attribute->id] as $attributeValue)
+                                                            <option value="{{ $attributeValue->id }}"
+                                                                data-variant="{{ $attributeValue->name }}"
+                                                                @if (in_array($attributeValue->id, $product->variants->pluck('attributeValues')->flatten()->pluck('id')->toArray())) selected @endif>
+                                                                {{ $attributeValue->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
                             </div>
                         </div>
                         <!-- detail variant -->
@@ -333,7 +359,8 @@
                                             <th>Variant Price</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="tbody"></tbody>
+                                    <tbody id="tbody">
+                                    </tbody>
                                 </table>
                             </form>
                         </div>
@@ -747,7 +774,6 @@
             dateFormat: "Y-m-d",
             onChange: function(selectedDates, dateStr, instance) {
                 // Jika Anda ingin mendapatkan nilai dan melakukan sesuatu dengan itu
-                console.log(selectedDates); // ini akan memberikan array tanggal yang dipilih
             }
         });
 
@@ -973,7 +999,7 @@
 
         // Select option
         $(document).ready(function() {
-            const selectElements = ['.status', '.choice_attributes', '.SubCategory'];
+            const selectElements = ['.status', '.choice_attributes', '.SubCategory', '.attributes_choise'];
 
             selectElements.forEach(function(selector) {
                 $(selector).select2({
@@ -1045,147 +1071,6 @@
         let input = document.querySelector('input[name=tags]');
         new Tagify(input);
 
-        // Fungsi untuk mengambil value variant detail jika ada
-        let productId = $('#productId').val(); // This now waits for DOM to be fully loaded correctly
-        $(document).ready(function() {
-            if (productId) {
-                $.get("{{ route('product.getVariants', ':id') }}".replace(':id', productId), function(response) {
-                    if (response.variants) {
-                        variantData = response.variants;
-                        console.log(variantData)
-                        updateVariantTableUpdate(response.variants);
-                    }
-                });
-            }
-
-            function updateVariantTableUpdate(variants) {
-                const table = $.fn.DataTable.isDataTable('#detailVariant') ?
-                    $('#detailVariant').DataTable() :
-                    $('#detailVariant').DataTable({
-                        responsive: true,
-                        searching: false,
-                        paging: false,
-                        ordering: false,
-                        info: false
-                    });
-
-                table.clear();
-
-                if (variants.length === 0) {
-                    table.row.add(['<div colspan="2" class="text-center">No variants available</div>', '', '', ''])
-                        .draw();
-                    return;
-                }
-
-                const uniqueCombinations = new Set();
-
-                variants.forEach((variant, index) => {
-                    const formattedPrice = variant.price ? new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
-                        minimumFractionDigits: 0
-                    }).format(variant.price) : '';
-                    const variantText = variant
-                        .variant_attribute; // Assuming 'name' is the variant name property
-                    if (!uniqueCombinations.has(variantText)) {
-                        uniqueCombinations.add(variantText);
-                        table.row.add([
-                            `<span class="badge badge-outline-primary expand-row" data-index="${index}" style="cursor: pointer;"><i class="ri-add-line"></i></span> ${variantText}`,
-                            `<input type="hidden" class="form-control" value="${variantText}" name="variant_attributes[]" placeholder="Price"> <input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price" value="${formattedPrice || ''}">`,
-                            `<input type="number" class="form-control" name="variant_stock[]" value="${variant.stock || ''}" placeholder="Stock">`,
-                            `<input type="text" class="form-control" name="variant_sku[]" value="${variant.sku || ''}" placeholder="SKU">`
-                        ]);
-                    }
-                });
-
-                table.draw();
-                formatPriceInput(); // Ensure price input is formatted correctly
-                handleExpandRowUpdate(table); // Allow for expanding rows if needed
-            }
-
-            function handleExpandRowUpdate(table) {
-                $('#detailVariant tbody').off('click', 'span.expand-row').on('click', 'span.expand-row',
-                    function() {
-                        const tr = $(this).closest('tr');
-                        const row = table.row(tr);
-                        const index = $(this).data('index');
-
-                        if (row.child.isShown()) {
-                            // This row is already expanded, so we hide it
-                            row.child.hide();
-                            tr.removeClass('shown');
-                            $(this).html('<i class="ri-add-line"></i>').removeClass('badge-outline-primary')
-                                .addClass('badge-outline-primary');
-                        } else {
-                            // Create child content and show it
-                            const childContent = createChildRowContentUpdate(index);
-                            row.child(childContent).show();
-                            tr.addClass('shown');
-                            $(this).html('<i class="ri-subtract-line"></i>').removeClass(
-                                'badge-outline-primary').addClass('badge-outline-primary');
-                        }
-                    });
-            }
-
-            function createChildRowContentUpdate(index) {
-                const variant = variantData[index]; // Assuming variantData stores the variants
-                console.log(variant)
-                const fileName = variant && variant.image ? variant.image : '';
-                const fileFormat = variant && variant.ext ? variant.ext : '';
-                const fileSize = variant && variant.size ? variant.size : '';
-
-                const shortenedFileName = fileName.length > 5 ? fileName.substr(0, 5) + '..' : fileName;
-                const shortenedfileSize = (fileSize / 1024).toFixed(2) + ' KB';
-
-                return `
-                <div class="child-row" style="height: auto; overflow-y: auto;">
-                    <div class="row mb-3">
-                        <label for="stock" class="col-2 col-form-label">Stock</label>
-                        <div class="col-10">
-                            <input type="number" class="form-control" name="variant_stock[]" placeholder="Stock" value="${variant ? variant.stock : ''}">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label for="sku" class="col-2 col-form-label">SKU</label>
-                        <div class="col-10">
-                            <input type="text" class="form-control" name="variant_sku[]" placeholder="SKU Product" value="${variant ? variant.sku : ''}">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label for="image" class="col-2 col-form-label">Image</label>
-                        <div class="col-10">
-                            <input type="file" id="image_${index}" name="variant_image[]" class="form-control">
-                            <div id="errorImage_${index}" class="invalid-feedback"></div>
-                            <div class="col-xxl-12 col-lg-12" id="thumbnail_${index}" style="display: ${variant && variant.image ? 'block' : 'none'};">
-                                <div class="card mt-1 shadow-none border">
-                                    <div class="p-1">
-                                        <div class="row align-items-center">
-                                            <div class="col-auto">
-                                               <img id="imagePreview_${index}" src="${variant && variant.image ? `http://127.0.0.1:8000/storage/upload/image/product/variant/thumbnail/${variant.image}` : 'https://placehold.co/100'}" alt="image" class="avatar-sm rounded bg-light" />
-                                            </div>
-                                            <div class="col ps-0">
-                                                <a class="text-muted fw-bold file-name_${index}">${shortenedFileName}</a>
-                                                <input type="hidden" name="file_name[]" value="${fileName}" class="form-control mt-1 file-name-input_${index}" />
-                                                <a class="text-muted fw-bold file-format_${index}">${fileFormat}</a>
-                                                <input type="hidden" name="file_format[]" value="${fileFormat}" class="form-control mt-1 file-format-input_${index}" />
-                                                <p class="mb-0 file-size_${index}">${shortenedfileSize}</p>
-                                                <input type="hidden" name="file_size[]" value="${fileSize}" class="form-control mt-1 file-size-input_${index}" />
-                                            </div>
-                                            <div class="col-auto">
-                                                <button type="button" class="btn btn-link fs-16 text-muted removeImage" data-index="${index}">
-                                                    <i class="ri-close-line text-danger"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-            }
-        });
-
         // Initialisasi select attributes
         $('#choiseAttributes').on('change', function() {
             const selectAttributes = $(this).select2('data');
@@ -1210,7 +1095,7 @@
                                 <input type="text" class="form-control" value="${text}" disabled>
                             </div>
                             <div class="col-lg-9">
-                                <select class="form-control attributes${id} attributes_choise" id="choiseAttributes${id}" multiple="multiple">
+                                <select class="form-control attributes${id} attributes_choise" id="choiseAttributes${id}" data-value="${text}" multiple="multiple">
                                     <option></option>
                                 </select>
                             </div>
@@ -1252,40 +1137,54 @@
             });
         }
 
+        // Objek untuk menyimpan nilai input
+        var variantData = @json($product->variants);
+
+        updateVariantTable(variantData);
+
         $(document).on('change', '.attributes_choise', function() {
             const allSelectedAttributes = [];
+            const allSelectedAttributesVal = [];
             const showVariantForm = $('#formDetailVariant');
 
-            $('.attributes_choise').each(function() {
-                const attributeId = $(this).attr('id');
-                const selectedValues = $(this).val() || [];
+            const selectValue = $(this).find(":selected").map(function() {
+                return $(this).val();
+            }).get();
 
-                if (selectedValues.length > 0) {
-                    showVariantForm.show(300);
-                    allSelectedAttributes.push({
-                        id: attributeId,
-                        values: selectedValues.map(value => ({
-                            id: value,
-                            name: $(this).find(`option[value="${value}"]`).data(
-                                'variant')
-                        }))
+            const selectVariant = $(this).find(":selected").map(function() {
+                return $(this).data("variant");
+            }).get();
+
+            if (selectValue.length > 0) {
+                showVariantForm.show(300);
+                for (let i = 0; i < selectValue.length; i++) {
+
+                    allSelectedAttributesVal.push({
+                        id: selectValue[i],
+                        name: selectVariant[i]
                     });
-                } else {
-                    showVariantForm.hide(300);
+
                 }
-            });
+
+                allSelectedAttributes.push({
+                    key: 1,
+                    values: allSelectedAttributesVal
+                })
+            } else {
+                showVariantForm.hide(300);
+            }
 
             // Tampilkan spinner saat permintaan dimulai
             $("#vloading").show();
 
-            // Kirim permintaan untuk membuat varian
+            // Kirim permintaan untuk membuat atau memperbarui varian produk
             $.post("{{ route('product.createVariants') }}", {
                     attributes: allSelectedAttributes,
                     _token: '{{ csrf_token() }}'
                 })
                 .done(function(variants) {
                     if (Array.isArray(variants)) {
-                        $("#vloading").hide();
+                        // Update data di variantData
                         updateVariantTable(variants);
                     }
                 })
@@ -1298,10 +1197,6 @@
                 });
         });
 
-        // Objek untuk menyimpan nilai input
-        let variantData = {};
-
-        // Fungsi untuk mengupdate tabel varian produk
         function updateVariantTable(variants) {
             const table = $.fn.DataTable.isDataTable('#detailVariant') ?
                 $('#detailVariant').DataTable() :
@@ -1315,30 +1210,108 @@
 
             table.clear();
 
-            if (variants.length === 0) {
-                table.row.add(['<div colspan="2" class="text-center">No variants available</div>', '', '', '']).draw();
-                return;
-            }
-
             const uniqueCombinations = new Set();
+            let lastRowIndex = table.rows().count() - 1; // Indeks baris terakhir
+            let lastVariantText = '';
 
-            variants.forEach((variant, index) => {
-                const variantText = variant.map(attr => attr.name).join(' - ');
-                if (!uniqueCombinations.has(variantText)) {
-                    uniqueCombinations.add(variantText);
-                    table.row.add([
-                        `<span class="badge badge-outline-primary expand-row" data-index="${index}" style="cursor: pointer;"><i class="ri-add-line"></i></span> ${variantText}`,
-                        `<input type="hidden" class="form-control" value="${variantText}" name="variant_attributes[]" placeholder="Price"> <input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price">`,
-                        '',
-                        ''
-                    ]);
+
+            // Initialize dataNew as an empty array
+            var dataNew = [];
+
+            // Track matched items to avoid duplication
+            var matchedItems = new Set();
+
+            // Loop through each object in dataAwal
+            variantData.forEach(dataAwalItem => {
+                // Loop through each array in dataBaru
+                variants.forEach(dataBaruArray => {
+                    if (Array.isArray(dataBaruArray)) {
+                        // Find the item in dataBaruArray where name matches variant_attribute in dataAwal
+                        const matchingItem = dataBaruArray.find(dataBaruItem => dataBaruItem.name ===
+                            dataAwalItem.variant_attribute);
+
+                        if (matchingItem) {
+                            // Add matched items to dataNew and store the matched name
+                            dataNew.push({
+                                id: matchingItem.id,
+                                name: matchingItem.name,
+                                price: dataAwalItem.price
+                            });
+                            matchedItems.add(matchingItem.name); // Track matched name
+                        }
+                    }
+                });
+            });
+
+            // Add unmatched items from dataBaru to dataNew
+            variants.forEach(dataBaruArray => {
+                if (Array.isArray(dataBaruArray)) {
+                    dataBaruArray.forEach(dataBaruItem => {
+                        // If name is not in matchedItems, add it to dataNew
+                        if (!matchedItems.has(dataBaruItem.name)) {
+                            dataNew.push({
+                                id: dataBaruItem.id,
+                                name: dataBaruItem.name,
+                                price: 0
+                            });
+                        }
+                    });
                 }
             });
 
-            table.draw();
-            formatPriceInput();
-            handleExpandRow(table);
+            if (variants.length > variantData.length) {
+                for (let i = 0; i < dataNew.length; i++) {
+                    var variant = dataNew[i];
+
+                    const variantPrice = variant['price'] || 0; // Pastikan harga tidak null atau undefined
+                    const formattedPrice = new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                    }).format(variantPrice);
+
+                    // Jika baris terakhir kosong atau variabel yang sesuai belum ada, tambahkan baris baru
+                    table.row.add([
+                        `<span class="badge badge-outline-primary expand-row" data-index="${i}" style="cursor: pointer;"><i class="ri-add-line"></i></span> ${variant['name']}`,
+                        `<input type="hidden" class="form-control" value="${variant['name']}" name="variant_attributes[]" placeholder="Price">
+                        <input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price" value="${formattedPrice}">`,
+                        '',
+                        ''
+                    ])
+
+
+                    table.draw();
+                    formatPriceInput();
+                    handleExpandRow(table);
+                }
+            } else {
+                for (let i = 0; i < variants.length; i++) {
+                    var variant = variants[i];
+
+                    const variantPrice = variant['price'] || 0; // Pastikan harga tidak null atau undefined
+                    const formattedPrice = new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                    }).format(variantPrice);
+
+                    // Jika baris terakhir kosong atau variabel yang sesuai belum ada, tambahkan baris baru
+                    table.row.add([
+                        `<span class="badge badge-outline-primary expand-row" data-index="${i}" style="cursor: pointer;"><i class="ri-add-line"></i></span> ${variant['variant_attribute']}`,
+                        `<input type="hidden" class="form-control" value="${variant['variant_attribute']}" name="variant_attributes[]" placeholder="Price">
+                        <input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price" value="${formattedPrice}">`,
+                        '',
+                        ''
+                    ]);
+
+                    table.draw();
+                    formatPriceInput();
+                    handleExpandRow(table);
+
+                }
+            }
         }
+
 
         // Format input sebagai uang Rupiah
         function formatPriceInput() {
@@ -1377,63 +1350,62 @@
                 }
             });
         }
-
         // Membuat konten untuk baris anak
         function createChildRowContent(index) {
-            const fileName = variantData[index] && variantData[index].fileName ? variantData[index].fileName : '';
-            const fileFormat = variantData[index] && variantData[index].fileFormat ? variantData[index].fileFormat : '';
-            const fileSize = variantData[index] && variantData[index].fileSize ? variantData[index].fileSize : '';
+            const variant = variantData[index] || {};
+            const fileName = variant.image || '';
+            const fileFormat = variant.ext || '';
+            const fileSize = variant.size || '';
+            const imageUrl = variant.image ? `/storage/upload/image/product/variant/${variant.image}` :
+                'https://via.placeholder.com/150?text=No+Image';
 
             return `
-            <div class="child-row" style="height: auto; overflow-y: auto;">
-                <div class="row mb-3">
-                    <label for="stock" class="col-2 col-form-label">Stock</label>
-                    <div class="col-10">
-                        <input type="number" class="form-control" name="variant_stock[]" placeholder="Stock" value="${variantData[index] ? variantData[index].stock : ''}">
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label for="sku" class="col-2 col-form-label">Sku</label>
-                    <div class="col-10">
-                        <input type="text" class="form-control" name="variant_sku[]" placeholder="SKU Product" value="${variantData[index] ? variantData[index].sku : ''}">
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label for="image" class="col-2 col-form-label">Image</label>
-                    <div class="col-10">
-                        <input type="file" id="image_${index}" name="variant_image[]" class="form-control">
-                        <div id="errorImage_${index}" class="invalid-feedback"></div>
-                        <div class="col-xxl-12 col-lg-12" id="thumbnail_${index}" style="display: ${variantData[index] && variantData[index].image ? 'block' : 'none'};">
-                            <div class="card mt-1 shadow-none border">
-                                <div class="p-1">
-                                    <div class="row align-items-center">
-                                        <div class="col-auto">
-                                            <img id="imagePreview_${index}" src="${variantData[index] && variantData[index].image ? variantData[index].image : 'https://via.placeholder.com/150?text=No+Image'}" alt="image" class="avatar-sm rounded bg-light" />
-                                        </div>
-                                        <div class="col ps-0">
-                                            <a class="text-muted fw-bold file-name_${index}">${fileName}</a>
-                                            <input type="hidden" name="file_name[]" value="${fileName}" class="form-control mt-1 file-name-input_${index}" />
-
-                                            <a class="text-muted fw-bold file-format_${index}">${fileFormat}</a>
-                                            <input type="hidden" name="file_format[]" value="${fileFormat}" class="form-control mt-1 file-format-input_${index}" />
-
-                                            <p class="mb-0 file-size_${index}">${fileSize}</p>
-                                            <input type="hidden" name="file_size[]" value="${fileSize}" class="form-control mt-1 file-size-input_${index}" />
-                                        </div>
-                                        <div class="col-auto">
-                                            <button type="button" class="btn btn-link fs-16 text-muted removeImage" data-index="${index}">
-                                                <i class="ri-close-line text-danger"></i>
-                                            </button>
+                        <div class="child-row" style="height: auto; overflow-y: auto;">
+                            <div class="row mb-3">
+                                <label for="stock" class="col-2 col-form-label">Stock</label>
+                                <div class="col-10">
+                                    <input type="number" class="form-control" name="variant_stock[]" placeholder="Stock" value="${variant.stock || ''}">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="sku" class="col-2 col-form-label">Sku</label>
+                                <div class="col-10">
+                                    <input type="text" class="form-control" name="variant_sku[]" placeholder="SKU Product" value="${variant.sku || ''}">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="image" class="col-2 col-form-label">Image</label>
+                                <div class="col-10">
+                                    <input type="file" id="image_${index}" name="variant_image[]" class="form-control">
+                                    <div id="errorImage_${index}" class="invalid-feedback"></div>
+                                    <div class="col-xxl-12 col-lg-12" id="thumbnail_${index}" style="display: ${variant.image ? 'block' : 'none'};">
+                                        <div class="card mt-1 shadow-none border">
+                                            <div class="p-1">
+                                                <div class="row align-items-center">
+                                                    <div class="col-auto">
+                                                        <img id="imagePreview_${index}" src="${imageUrl}" alt="image" class="avatar-sm rounded bg-light" />
+                                                    </div>
+                                                    <div class="col ps-0">
+                                                        <a class="text-muted fw-bold file-name_${index}">${fileName.length > 5 ? fileName.substr(0, 5) + '.. ' :  fileName}</a>
+                                                        <input type="hidden" name="file_name[]" value="${fileName}" class="form-control mt-1 file-name-input_${index}" />
+                                                        <a class="text-muted fw-bold file-format_${index}">${fileFormat.split('/').pop()}</a>
+                                                        <input type="hidden" name="file_format[]" value="${fileFormat}" class="form-control mt-1 file-format-input_${index}" />
+                                                        <p class="mb-0 file-size_${index}">${(fileSize / 1024).toFixed(2) + ' KB'}</p>
+                                                        <input type="hidden" name="file_size[]" value="${fileSize}" class="form-control mt-1 file-size-input_${index}" />
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <button type="button" class="btn btn-link fs-16 text-muted removeImage" data-index="${index}">
+                                                            <i class="ri-close-line text-danger"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
+                        </div>`;
         }
-
 
         // Membuat validasi upload image dan input image
         function handleImagePreview(index) {

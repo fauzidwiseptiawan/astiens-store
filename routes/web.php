@@ -26,6 +26,7 @@ Route::group(['middleware' => 'admin'], function () {
     // route product
     Route::get('panel/admin/product/fetch', [ProductController::class, 'fetch'])->name('product.fetch');
     Route::post('panel/admin/product/create-variants', [ProductController::class, 'create_variants'])->name('product.createVariants');
+    Route::post('panel/admin/product/update-variants', [ProductController::class, 'update_variants'])->name('product.updateVariants');
     Route::get('panel/admin/product/generate-item-code', [ProductController::class, 'generate_item_code'])->name('product.generateItemCode');
     Route::get('panel/admin/product/get-value/{id}', [ProductController::class, 'get_value'])->name('product.getValue');
     Route::get('panel/admin/product/get-brand', [ProductController::class, 'get_brand'])->name('product.getBrand');

@@ -19,6 +19,8 @@ use App\Services\ImageUploadService;
 use App\Helpers\NumberFormatter;
 use App\Scopes\ActiveScope;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -182,12 +184,15 @@ class ProductController extends Controller
         $combinations = [];
         $restCombinations = $this->createCombinations(array_slice($attributes, 1));
 
+
         foreach ($attributes[0]['values'] as $val) {
             foreach ($restCombinations as $combination) {
                 $combinations[] = array_merge([$val], $combination);
             }
         }
 
+        // return response()->json($combinations);
+        // die;
         return $combinations;
     }
 
@@ -478,19 +483,22 @@ class ProductController extends Controller
 
                 // Menyimpan varian produk jika ada
                 if ($request->is_variant == 1) {
-                    // Pastikan kita memiliki array untuk variant_attributes dan choice_attributes
                     if (is_array($request->variant_attributes) && is_array($request->choice_attributes)) {
                         foreach ($request->variant_attributes as $index => $attribute) {
-                            // Cek apakah choice_attributes untuk index ini ada dan merupakan array
-                            if (isset($request->choice_attributes[$index]) && is_array($request->choice_attributes[$index])) {
-                                // Buat string choiceAttributes dengan implode untuk setiap pilihan di choice_attributes
-                                $choiceAttributes = implode(' - ', $request->choice_attributes[$index]);
+                            // Construct the choiceAttributes string
+                            if (!empty($request->choice_attributes) && is_array($request->choice_attributes)) {
+                                $choiceAttributes = implode(' - ', $request->choice_attributes);
                             } else {
-                                $choiceAttributes = ''; // Ganti dengan nilai default yang sesuai, misalnya string kosong
+                                $choiceAttributes = '';
                             }
-                            // convert string rupiah ke interger
+
+                            // Ensure attribute is a string
+                            $attribute = is_array($attribute) ? implode(', ', $attribute) : $attribute;
+
+                            // Convert price to integer
                             $price = (int) preg_replace('/[^0-9]/', '', $request->variant_price[$index] ?? '0');
-                            // Buat record varian
+
+                            // Create the ProductVariant
                             $variant = new ProductVariant([
                                 'product_id' => $product->id,
                                 'variant' => $choiceAttributes,
@@ -502,12 +510,12 @@ class ProductController extends Controller
                                 'created_at' => now(),
                             ]);
 
-                            // Upload gambar varian jika ada
+                            // Handle image upload
                             if ($request->hasFile("variant_image.$index")) {
                                 $path = 'upload/image/product/variant';
                                 $pathResize = 'upload/image/product/variant/thumbnail';
 
-                                // Menggunakan service untuk meng-upload dan meresize gambar
+                                // Using the image upload service
                                 $fileInfo = $this->imageUploadService->uploadAndResize(
                                     $request->file("variant_image.$index"),
                                     $path,
@@ -519,11 +527,34 @@ class ProductController extends Controller
                                 $variant->size = $fileInfo['file_size'];
                             }
 
-                            // Simpan varian ke database
+                            // Save the variant
                             $variant->save();
+
+                            // Split the attribute string if it contains multiple attributes
+                            $attributeArray = explode(', ', $attribute); // Split by comma and space
+                            foreach ($attributeArray as $key => $attrValue) {
+                                // Get the corresponding choice attribute
+                                $choiceValue = $request->choice_attributes[$key] ?? null;
+
+                                if ($choiceValue) {
+                                    // Find the attribute value ID
+                                    $attributeValueId = AttributesValue::where('name', $attrValue)
+                                        ->whereHas('attributes', function ($query) use ($choiceValue) {
+                                            $query->where('name', $choiceValue);
+                                        })
+                                        ->first();
+
+                                    // Attach if found
+                                    if ($attributeValueId) {
+                                        $variant->attributeValues()->attach($attributeValueId->id, [
+                                            'id' => Str::uuid(),
+                                        ]);
+                                    }
+                                }
+                            }
                         }
                     } else {
-                        // Tangani situasi ketika data tidak terformat dengan benar
+                        // Handle invalid input
                         return response()->json([
                             'status'   => 400,
                             'message' => 'Invalid input format.'
@@ -594,13 +625,54 @@ class ProductController extends Controller
     }
 
 
-
     function show($id)
     {
-        $product = Product::with(['variants', 'images'])->find($id);
-        $attribute = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
-        $firstVariant = $product->variants->pluck('variant')->first();
-        $existingAttributes = explode(" - ", $firstVariant);
+        // Retrieve the product with its variants, attributes, and attribute values
+        $product = Product::with([
+            'variants' => function ($query) {
+                $query->with([
+                    'attributeValues' => function ($subQuery) {
+                        // Specify the columns you want to select for attributeValues
+                        $subQuery->select('attributes_value.id', 'attributes_value.name', 'attributes_value.attributes_id');
+                    },
+                    'attributeValues.attributes' => function ($subQuery) {
+                        // Specify the columns you want to select for attributes
+                        $subQuery->select('attributes.id', 'attributes.name');
+                    }
+                ]);
+            }
+        ])->find($id);
+
+        // Check if the product exists
+        if (!$product) {
+            return redirect()->route('backend.product.index')->with('error', 'Product not found.');
+        }
+
+        // Ambil attributes yang tersedia di database
+        $attributes = Attributes::all();  // Mengambil semua attributes
+
+        // Ambil attribute values untuk masing-masing attribute
+        $attributeValues = [];
+        foreach ($attributes as $attribute) {
+            $attributeValues[$attribute->id] = AttributesValue::where('attributes_id', $attribute->id)->get();
+        }
+
+        // Ambil attribute ids yang sudah dipilih berdasarkan produk
+        // Di sini, kita hanya akan mengambil attribute values yang terkait dengan product variants
+        $selectedAttributeIds = [];
+        foreach ($product->variants as $variant) {
+            foreach ($variant->attributeValues as $attributeValue) {
+                $selectedAttributeIds[] = $attributeValue->attributes_id;
+            }
+        }
+
+        // Pastikan attributeValues tidak kosong dan pastikan data yang dikirim valid
+        foreach ($attributeValues as $attributeId => $values) {
+            if ($values->isEmpty()) {
+                $attributeValues[$attributeId] = null;  // Atur null jika tidak ada attribute values
+            }
+        }
+
         // Initialize dateRange as an empty string
         $dateRange = '';
 
@@ -610,6 +682,6 @@ class ProductController extends Controller
             $dateRange = $product->discount_start_date . ' to ' . $product->discount_end_date;
         }
 
-        return view('backend.product.update', compact('product', 'dateRange', 'attribute', 'existingAttributes'));
+        return view('backend.product.update', compact('product', 'dateRange', 'attributes', 'selectedAttributeIds', 'attributeValues'));
     }
 }

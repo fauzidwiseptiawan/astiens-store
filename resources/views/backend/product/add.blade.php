@@ -1039,7 +1039,7 @@
                                 <input type="text" class="form-control" value="${text}" disabled>
                             </div>
                             <div class="col-lg-9">
-                                <select class="form-control attributes${id} attributes_choise" id="choiseAttributes${id}" multiple="multiple">
+                                <select class="form-control attributes${id} attributes_choise" id="choiseAttributes${id}" data-value="${text}" multiple="multiple">
                                     <option></option>
                                 </select>
                             </div>
@@ -1086,17 +1086,18 @@
             const showVariantForm = $('#formDetailVariant');
 
             $('.attributes_choise').each(function() {
-                const attributeId = $(this).attr('id');
+                const key = $(this).attr('id');
+                const attributeId = $(this).attr('data-value');
                 const selectedValues = $(this).val() || [];
 
                 if (selectedValues.length > 0) {
                     showVariantForm.show(300);
                     allSelectedAttributes.push({
-                        id: attributeId,
+                        key: key,
                         values: selectedValues.map(value => ({
                             id: value,
                             name: $(this).find(`option[value="${value}"]`).data(
-                                'variant')
+                                'variant'),
                         }))
                     });
                 } else {
@@ -1152,17 +1153,20 @@
             const uniqueCombinations = new Set();
 
             variants.forEach((variant, index) => {
-                const variantText = variant.map(attr => attr.name).join(' - ');
-                if (!uniqueCombinations.has(variantText)) {
-                    uniqueCombinations.add(variantText);
+                const variantAttributes = variant.map(attr => attr.name); // Adjusted to extract attribute names
+                if (!uniqueCombinations.has(variantAttributes
+                        .toString())) { // Convert to string to check uniqueness
+                    uniqueCombinations.add(variantAttributes.toString());
                     table.row.add([
-                        `<span class="badge badge-outline-primary expand-row" data-index="${index}" style="cursor: pointer;"><i class="ri-add-line"></i></span> ${variantText}`,
-                        `<input type="hidden" class="form-control" value="${variantText}" name="variant_attributes[]" placeholder="Price"> <input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price">`,
+                        `<span class="badge badge-outline-primary expand-row" data-index="${index}" style="cursor: pointer;"><i class="ri-add-line"></i></span> ${variantAttributes.join(' - ')}`,
+                        `<input type="text" class="form-control" value="${variantAttributes.join(', ')}" name="variant_attributes[${index}][]"><input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price">`,
                         '',
                         ''
                     ]);
                 }
+                console.log(variant)
             });
+
 
             table.draw();
             formatPriceInput();
@@ -1350,7 +1354,6 @@
             }
         });
 
-
         // store product at database
         $(document).on("click", "#addProduct", function(e) {
             let slugs = $('#slugs').val();
@@ -1361,7 +1364,6 @@
             let minQty = $('#minQty').val();
             let maxQty = $('#maxQty').val();
             let image = $('#image1')[0].files[0];
-            // let validationImage = $('input[name="image"]').val().split('\\').pop();
             let isVarinat = $('#is_variant').val();
             let price = $('#price').val();
             let sku = $('#sku').val();
@@ -1381,16 +1383,25 @@
             let seoDesc = $('#seoDesc').val();
             let date = $('#date').val();
             let discount = $('#discount').val();
-            let newArrival = $('#newArrival').is(':checked') ? '1' : '0';
-            let bestSeller = $('#bestSeller').is(':checked') ? '1' : '0';
-            let specialOffer = $('#specialOffer').is(':checked') ? '1' : '0';
+            let newArrival = $('#newArrival').is(':checked') ? 'Yes' : 'No';
+            let bestSeller = $('#bestSeller').is(':checked') ? 'Yes' : 'No';
+            let specialOffer = $('#specialOffer').is(':checked') ? 'Yes' : 'No';
             let refundable = $('#refundable').is(':checked') ? '1' : '0';
-            let hot = $('#hot').is(':checked') ? '1' : '0';
-            let newLabel = $('#new').is(':checked') ? '1' : '0';
-            let sale = $('#newArrival').is(':checked') ? '1' : '0';
+            let hot = $('#hot').is(':checked') ? 'Yes' : 'No';
+            let newLabel = $('#new').is(':checked') ? 'Yes' : 'No';
+            let sale = $('#newArrival').is(':checked') ? 'Yes' : 'No';
 
             // Mengambil gambar-gambar dari input multiple
             let multipleImage = $('#image2')[0].files;
+
+            // Mengambil choice_attributes dari input select2 multiple
+            let choiceAttributes = $('select[name="choice_attributes[]"]').map(function(index, element) {
+                // Mengambil teks dari pilihan yang dipilih menggunakan Select2
+                var selectedData = $(element).select2('data'); // Mengambil data yang dipilih
+                return selectedData.map(function(item) {
+                    return item.text; // Ambil teks dari setiap item yang dipilih
+                });
+            }).get();
 
             // Hanya lakukan validasi jika isVariant dicentang
             if (isVariant === '1') {
@@ -1421,19 +1432,18 @@
                     i]); // Menggunakan 'images[]' agar dapat diolah sebagai array di server
             }
 
-            // array push kehadiran
-            $('select[name^="choice_attributes"]').each(function(index) {
-                $(this).find(':selected').each(function() {
-                    // Menambahkan setiap pilihan yang dipilih ke dalam FormData
-                    fd.append(`choice_attributes[${index}][]`, $(this).text());
-                });
+            choiceAttributes.forEach(function(value, index) {
+                fd.append(`choice_attributes[${index}]`, value);
             });
-            $('select[name="choice_attributes[]"]').each(function() {
-                fd.append("choice_attributes[${index}][]", $(this).find(":selected").text());
+
+            $('input[name^="variant_attributes"]').each(function() {
+                // Get the index from the input's name attribute
+                const index = $(this).attr('name').match(/\[(\d+)\]/)[1];
+
+                // Append the value of the input field to FormData with the appropriate index
+                fd.append(`variant_attributes[${index}][]`, $(this).val());
             });
-            $('input[name="variant_attributes[]"]').each(function() {
-                fd.append("variant_attributes[]", $(this).val());
-            });
+
             $('input[name="variant_price[]"]').each(function() {
                 fd.append("variant_price[]", $(this).val());
             });
@@ -1480,7 +1490,7 @@
                 let convert = JSON.parse(tags)
                 fd.append('tags', convert.map(item => item.value).toString())
             }
-            fd.append("seo", seo);
+            fd.append("seo_title", seo);
             fd.append("seo_desc", seoDesc);
             fd.append("image", image);
             fd.append("new_arrival", newArrival);

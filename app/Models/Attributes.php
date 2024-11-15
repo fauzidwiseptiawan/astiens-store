@@ -38,4 +38,9 @@ class Attributes extends Model
         'deleted_at',
         'deleted_by',
     ];
+
+    public function values()
+    {
+        return $this->hasMany(AttributesValue::class);
+    }
 }
