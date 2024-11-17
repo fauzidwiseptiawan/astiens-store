@@ -21,12 +21,12 @@ class CategoryController extends Controller
         $this->imageUploadService = $imageUploadService;
     }
 
-    function index()
+    public function index()
     {
         return view('backend.category.index');
     }
 
-    function fetch()
+    public function fetch()
     {
         // fetch category
         $category = Category::withoutGlobalScope(ActiveScope::class)->orderBy('id', 'ASC')->get();
@@ -68,7 +68,7 @@ class CategoryController extends Controller
             ->make(true);
     }
 
-    function store(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name'  => 'required|unique:category',
@@ -119,7 +119,7 @@ class CategoryController extends Controller
         }
     }
 
-    function show($id)
+    public function show($id)
     {
         $category = Category::find($id);
         return response()->json([
@@ -129,7 +129,7 @@ class CategoryController extends Controller
         ]);
     }
 
-    function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $category = Category::find($id);
         $validator = Validator::make($request->all(), [
@@ -199,7 +199,7 @@ class CategoryController extends Controller
         }
     }
 
-    function change_active(Request $request)
+    public function change_active(Request $request)
     {
         $category = Category::find($request->id);
         $category->update([
@@ -212,7 +212,7 @@ class CategoryController extends Controller
         ]);
     }
 
-    function destroy_selected(Request $request)
+    public function destroy_selected(Request $request)
     {
         foreach ($request->id as $id) {
             $category = Category::find($id);
@@ -228,7 +228,7 @@ class CategoryController extends Controller
         ]);
     }
 
-    function destroy_soft($id)
+    public function destroy_soft($id)
     {
         $category = Category::find($id);
         $category->update([

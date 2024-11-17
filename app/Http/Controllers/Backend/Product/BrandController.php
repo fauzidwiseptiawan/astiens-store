@@ -21,12 +21,12 @@ class BrandController extends Controller
         $this->imageUploadService = $imageUploadService;
     }
 
-    function index()
+    public function index()
     {
         return view('backend.brand.index');
     }
 
-    function fetch()
+    public function fetch()
     {
         // fetch brand
         $brand = Brand::withoutGlobalScope(ActiveScope::class)->get();
@@ -67,7 +67,7 @@ class BrandController extends Controller
             ->make(true);
     }
 
-    function store(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name'  => 'required|unique:brand',
@@ -114,7 +114,7 @@ class BrandController extends Controller
         }
     }
 
-    function show($id)
+    public function show($id)
     {
         $brand = Brand::find($id);
         return response()->json([
@@ -124,7 +124,7 @@ class BrandController extends Controller
         ]);
     }
 
-    function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $brand = Brand::find($id);
         $validator = Validator::make($request->all(), [
@@ -190,7 +190,7 @@ class BrandController extends Controller
         }
     }
 
-    function change_active(Request $request)
+    public function change_active(Request $request)
     {
         $brand = Brand::find($request->id);
         $brand->update([
@@ -203,7 +203,7 @@ class BrandController extends Controller
         ]);
     }
 
-    function destroy_selected(Request $request)
+    public function destroy_selected(Request $request)
     {
         foreach ($request->id as $id) {
             $brand = Brand::find($id);
@@ -219,7 +219,7 @@ class BrandController extends Controller
         ]);
     }
 
-    function destroy_soft($id)
+    public function destroy_soft($id)
     {
         $brand = Brand::find($id);
         $brand->update([

@@ -13,13 +13,13 @@ use Illuminate\Http\Request;
 
 class SubCategoryController extends Controller
 {
-    function index()
+    public function index()
     {
         $category = Category::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
         return view('backend.sub_category.index', compact('category'));
     }
 
-    function fetch()
+    public function fetch()
     {
         // fetch category
         $sub_category = SubCategory::withoutGlobalScope(ActiveScope::class)->orderBy('id', 'ASC')->get();
@@ -56,7 +56,7 @@ class SubCategoryController extends Controller
             ->make(true);
     }
 
-    function store(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make(
             $request->all(),
@@ -87,7 +87,7 @@ class SubCategoryController extends Controller
         }
     }
 
-    function show($id)
+    public function show($id)
     {
         $sub_category = SubCategory::find($id);
         $category = Category::withoutGlobalScope(ActiveScope::class)->get();
@@ -99,7 +99,7 @@ class SubCategoryController extends Controller
         ]);
     }
 
-    function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $sub_category = SubCategory::find($id);
         $validator = Validator::make($request->all(), [
@@ -128,7 +128,7 @@ class SubCategoryController extends Controller
         }
     }
 
-    function change_active(Request $request)
+    public function change_active(Request $request)
     {
         $sub_category = SubCategory::find($request->id);
         $sub_category->update([
@@ -141,7 +141,7 @@ class SubCategoryController extends Controller
         ]);
     }
 
-    function destroy_selected(Request $request)
+    public function destroy_selected(Request $request)
     {
         foreach ($request->id as $id) {
             $sub_category = SubCategory::find($id);
@@ -157,7 +157,7 @@ class SubCategoryController extends Controller
         ]);
     }
 
-    function destroy_soft($id)
+    public function destroy_soft($id)
     {
         $sub_category = SubCategory::find($id);
         $sub_category->update([

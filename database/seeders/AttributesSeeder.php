@@ -20,11 +20,40 @@ class AttributesSeeder extends Seeder
             ],
             [
                 "name" => "Size",
-                "values" => ["S", "M", "L", "XL", "XXL"]
+                "values" => [
+                    // Clothing sizes (S, M, L, XL, XXL)
+                    "S",
+                    "M",
+                    "L",
+                    "XL",
+                    "XXL",
+                    // Shoe sizes (US, EU, UK)
+                    "US 6",
+                    "US 7",
+                    "US 8",
+                    "US 9",
+                    "US 10",
+                    "US 11",
+                    "US 12", // US Shoe Sizes
+                    "EU 39",
+                    "EU 40",
+                    "EU 41",
+                    "EU 42",
+                    "EU 43",
+                    "EU 44",
+                    "EU 45", // EU Shoe Sizes
+                    "UK 5",
+                    "UK 6",
+                    "UK 7",
+                    "UK 8",
+                    "UK 9",
+                    "UK 10",
+                    "UK 11"  // UK Shoe Sizes
+                ]
             ],
             [
                 "name" => "Material",
-                "values" => ["Cotton", "Polyester", "Wool"]
+                "values" => ["Cotton", "Polyester", "Wool", "Leather", "Silk", "Linen", "Denim"]
             ]
         ];
 

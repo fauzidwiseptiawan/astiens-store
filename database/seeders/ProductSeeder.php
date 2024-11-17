@@ -21,9 +21,16 @@ class ProductSeeder extends Seeder
         $faker = Faker::create();
 
         // Step 1: Membuat beberapa kategori dan subkategori
-        $categoryNames = ['Electronics', 'Fashion', 'Home Appliances', 'Books', 'Toys'];
-        foreach ($categoryNames as $key => $categoryName) {
-            // Membuat kategori
+        $category = ['Electronics', 'Fashion', 'Home Appliances', 'Books', 'Toys'];
+        $subCategory = [
+            'Electronics' => ['Mobile Phones', 'Laptops', 'Cameras', 'Headphones', 'TVs'],
+            'Fashion' => ['Men\'s Clothing', 'Women\'s Clothing', 'Footwear', 'Accessories', 'Watches'],
+            'Home Appliances' => ['Refrigerators', 'Washing Machines', 'Microwaves', 'Air Conditioners', 'Vacuum Cleaners'],
+            'Books' => ['Fiction', 'Non-fiction', 'Science', 'Self-help', 'Comics'],
+            'Toys' => ['Action Figures', 'Board Games', 'Building Blocks', 'Dolls', 'Outdoor Toys'],
+        ];
+        foreach ($category as $key => $categoryName) {
+            // Create category
             $category = Category::create([
                 'name' => $categoryName,
                 'slug' => Str::slug($categoryName),
@@ -32,23 +39,45 @@ class ProductSeeder extends Seeder
                 'meta_desc' => $faker->paragraph(),
             ]);
 
-            // Membuat beberapa subkategori untuk setiap kategori
-            for ($i = 0; $i < rand(1, 3); $i++) {
-                $subCategoryName = $faker->words(2, true);
-                SubCategory::create([
-                    'category_id' => $category->id,
-                    'name' => $subCategoryName,
-                    'slug' => Str::slug($subCategoryName),
-                ]);
+            // Create subcategories based on the predefined list
+            if (isset($subCategory[$categoryName])) {
+                foreach ($subCategory[$categoryName] as $subCategoryName) {
+                    SubCategory::create([
+                        'category_id' => $category->id,
+                        'name' => $subCategoryName,
+                        'slug' => Str::slug($subCategoryName),
+                    ]);
+                }
             }
         }
 
         // Step 2: Membuat beberapa brand
         $brands = [];
-        for ($i = 0; $i < 5; $i++) {
+        $predefinedBrands = [
+            'Apple',
+            'Samsung',
+            'Nike',
+            'Adidas',
+            'Sony',
+            'LG',
+            'Dell',
+            'HP',
+            'Bose',
+            'Huawei',
+            'Canon',
+            'Panasonic',
+            'Philips',
+            'Puma',
+            'Reebok',
+            'Under Armour',
+            'Microsoft',
+            'Xiaomi'
+        ];
+
+        foreach ($predefinedBrands as $brandName) {
             $brand = Brand::create([
-                'name' => $faker->company,
-                'slug' => Str::slug($faker->company),
+                'name' => $brandName,
+                'slug' => Str::slug($brandName),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -103,10 +132,6 @@ class ProductSeeder extends Seeder
                         'is_deleted' => 0,  // TINYINT (0 for not deleted)
                         'created_at' => Carbon::now(),
                         'created_by' => $faker->randomDigitNotNull,
-                        'updated_at' => Carbon::now(),
-                        'updated_by' => $faker->randomDigitNotNull,
-                        'deleted_at' => null,
-                        'deleted_by' => null,
                     ]);
                 }
             }

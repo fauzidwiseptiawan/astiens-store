@@ -13,14 +13,14 @@ use Illuminate\Support\Facades\Auth;
 
 class AttributesValueController extends Controller
 {
-    function index(Request $request)
+    public function index(Request $request)
     {
         $uri = $request->query('id');;
         $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
         return view('backend.attributes.attributes_value.index', compact('attributes', 'uri'));
     }
 
-    function fetch($id)
+    public function fetch($id)
     {
         // fetch attributes
         $attributes = AttributesValue::withoutGlobalScope(ActiveScope::class)->where('attributes_id', $id)->orderBy('id', 'ASC')->get();
@@ -57,7 +57,7 @@ class AttributesValueController extends Controller
             ->make(true);
     }
 
-    function store(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make(
             $request->all(),
@@ -86,7 +86,7 @@ class AttributesValueController extends Controller
         }
     }
 
-    function show($id)
+    public function show($id)
     {
         $attributes_value = AttributesValue::find($id);
         $attributes = Attributes::all();
@@ -98,7 +98,7 @@ class AttributesValueController extends Controller
         ]);
     }
 
-    function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $attributes = AttributesValue::find($id);
         $validator = Validator::make($request->all(), [
@@ -124,7 +124,7 @@ class AttributesValueController extends Controller
         }
     }
 
-    function change_active(Request $request)
+    public function change_active(Request $request)
     {
         $attributes = AttributesValue::find($request->id);
         $attributes->update([
@@ -137,7 +137,7 @@ class AttributesValueController extends Controller
         ]);
     }
 
-    function destroy_selected(Request $request)
+    public function destroy_selected(Request $request)
     {
         foreach ($request->id as $id) {
             $attributes = AttributesValue::find($id);
@@ -153,7 +153,7 @@ class AttributesValueController extends Controller
         ]);
     }
 
-    function destroy_soft($id)
+    public function destroy_soft($id)
     {
         $attributes = AttributesValue::find($id);
         $attributes->update([

@@ -12,13 +12,13 @@ use Illuminate\Support\Facades\Auth;
 
 class AttributesController extends Controller
 {
-    function index()
+    public function index()
     {
         $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
         return view('backend.attributes.index', compact('attributes'));
     }
 
-    function fetch()
+    public function fetch()
     {
         // fetch attributes
         $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('id', 'ASC')->get();
@@ -58,7 +58,7 @@ class AttributesController extends Controller
             ->make(true);
     }
 
-    function store(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make(
             $request->all(),
@@ -85,7 +85,7 @@ class AttributesController extends Controller
         }
     }
 
-    function show($id)
+    public function show($id)
     {
         $attributes = Attributes::find($id);
         return response()->json([
@@ -95,7 +95,7 @@ class AttributesController extends Controller
         ]);
     }
 
-    function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $attributes = Attributes::find($id);
         $validator = Validator::make($request->all(), [
@@ -121,7 +121,7 @@ class AttributesController extends Controller
         }
     }
 
-    function change_active(Request $request)
+    public function change_active(Request $request)
     {
         $attributes = Attributes::find($request->id);
         $attributes->update([
@@ -134,7 +134,7 @@ class AttributesController extends Controller
         ]);
     }
 
-    function destroy_selected(Request $request)
+    public function destroy_selected(Request $request)
     {
         foreach ($request->id as $id) {
             $attributes = Attributes::find($id);
@@ -150,7 +150,7 @@ class AttributesController extends Controller
         ]);
     }
 
-    function destroy_soft($id)
+    public function destroy_soft($id)
     {
         $attributes = Attributes::find($id);
         $attributes->update([

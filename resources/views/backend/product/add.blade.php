@@ -101,7 +101,7 @@
                                 <label for="name" class="form-label">Weight <strong
                                         class="text-danger">*</strong></label>
                                 <div class="input-group flex-nowrap">
-                                    <input type="number" class="form-control" placeholder="Enter weight"
+                                    <input type="number" class="form-control" id="weight" placeholder="Enter weight"
                                         aria-describedby="basic-addon1" value="0">
                                     <span class="input-group-text" id="basic-addon1">Grams</span>
                                 </div>
@@ -749,59 +749,77 @@
             });
         }
 
-        function initializeTinyMCE(selector, height) {
+        // Fungsi upload gambar untuk TinyMCE
+        const imageUploadHandler = (blobInfo, progress) => new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/panel/admin/upload-tinymce-image');
+            xhr.setRequestHeader('X-CSRF-TOKEN', document.querySelector('meta[name="csrf-token"]').content);
+
+            xhr.upload.onprogress = (e) => progress(e.loaded / e.total * 100);
+
+            xhr.onload = () => {
+                if (xhr.status !== 200) {
+                    return reject('HTTP Error: ' + xhr.status);
+                }
+
+                const json = JSON.parse(xhr.responseText);
+                json.location ? resolve(json.location) : reject('Invalid JSON: ' + xhr.responseText);
+            };
+
+            xhr.onerror = () => reject('Upload failed: ' + xhr.status);
+
+            const formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            xhr.send(formData);
+        });
+
+        // Fungsi untuk menginisialisasi TinyMCE dengan konfigurasi umum
+        const initializeTinyMCE = (selector, height) => {
             tinymce.init({
-                selector: selector,
-                height: height, // Mengatur tinggi editor sesuai parameter
-                promotion: false,
-                license_key: 'gpl',
-                deprecation_warnings: false,
+                selector,
+                height,
                 plugins: [
                     'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                     'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
                     'insertdatetime', 'media', 'table', 'help', 'wordcount'
                 ],
-                toolbar: 'undo redo | blocks | ' +
-                    'bold italic backcolor | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                    'removeformat | help',
-                visual_table_class: 'tiny-table',
+                toolbar: 'undo redo | bold italic | alignleft aligncenter alignright | bullist numlist | removeformat | help',
                 statusbar: false,
+                promotion: false,
+                images_upload_handler: imageUploadHandler,
                 fontsize_formats: "8px 10px 12px 14px 18px 24px 36px",
-                relative_urls: false,
-                remove_script_host: false,
-                convert_urls: true,
                 automatic_uploads: true,
-                file_browser_callback_types: 'file image media',
-                file_picker_callback: (cb, value, meta) => {
-                    const input = document.createElement('input');
-                    input.setAttribute('type', 'file');
-                    input.setAttribute('accept', 'image/*');
-
-                    input.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        const reader = new FileReader();
-                        reader.addEventListener('load', () => {
-                            const id = 'blobid' + new Date().getTime();
-                            const blobCache = tinymce.activeEditor.editorUpload.blobCache;
-                            const base64 = reader.result.split(',')[1];
-                            const blobInfo = blobCache.create(id, file, base64);
-                            blobCache.add(blobInfo);
-
-                            // Panggil callback dan isi Title dengan nama file
-                            cb(blobInfo.blobUri(), {
-                                title: file.name
-                            });
-                        });
-                        reader.readAsDataURL(file);
+                license_key: 'gpl',
+                setup: (editor) => {
+                    editor.on('keydown', (e) => {
+                        if ([8, 46].includes(e.keyCode)) { // Backspace or Delete
+                            const selectedNode = editor.selection.getNode();
+                            if (selectedNode && selectedNode.nodeName === 'IMG' && confirm(
+                                    'Hapus gambar ini?')) {
+                                fetch('/panel/admin/delete-tinymce-image', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector(
+                                                'meta[name="csrf-token"]').content
+                                        },
+                                        body: JSON.stringify({
+                                            image_path: selectedNode.src
+                                        })
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => data.success ? editor.dom.remove(selectedNode) :
+                                        alert('Gagal menghapus gambar'))
+                                    .catch(() => alert('Terjadi kesalahan saat menghapus gambar.'));
+                                e.preventDefault();
+                            }
+                        }
                     });
-
-                    input.click();
-                }
+                },
             });
-        }
+        };
 
-        // Inisialisasi TinyMCE dengan tinggi berbeda
+        // Inisialisasi TinyMCE dengan selector dan tinggi
         initializeTinyMCE('#shortDesc', 300);
         initializeTinyMCE('#longDesc', 500);
 
@@ -1159,7 +1177,7 @@
                     uniqueCombinations.add(variantAttributes.toString());
                     table.row.add([
                         `<span class="badge badge-outline-primary expand-row" data-index="${index}" style="cursor: pointer;"><i class="ri-add-line"></i></span> ${variantAttributes.join(' - ')}`,
-                        `<input type="text" class="form-control" value="${variantAttributes.join(', ')}" name="variant_attributes[${index}][]"><input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price">`,
+                        `<input type="hidden" class="form-control" value="${variantAttributes.join(', ')}" name="variant_attributes[${index}][]"><input type="text" class="form-control price-input" name="variant_price[]" placeholder="Price">`,
                         '',
                         ''
                     ]);
@@ -1367,6 +1385,7 @@
             let isVarinat = $('#is_variant').val();
             let price = $('#price').val();
             let sku = $('#sku').val();
+            let weight = $('#weight').val();
             let stock = $('#stock').val();
             let attributesId = $('#attributesId').val();
             let valuesId = $('#valuesId').val();
@@ -1405,12 +1424,12 @@
 
             // Hanya lakukan validasi jika isVariant dicentang
             if (isVariant === '1') {
-                let variantAttributes = $('input[name="variant_attributes[]"]');
-                if (variantAttributes.length === 0 || variantAttributes.filter((_, el) => $(el).val() === '')
-                    .length > 0) {
-                    errorToast("Silakan isi semua varian atribut.");
-                    return;
-                }
+                // let variantAttributes = $('input[name="variant_attributes[]"]');
+                // if (variantAttributes.length === 0 || variantAttributes.filter((_, el) => $(el).val() === '')
+                //     .length > 0) {
+                //     errorToast("Silakan isi semua varian atribut.");
+                //     return;
+                // }
 
                 let variantPrices = $('input[name="variant_price[]"]');
                 if (variantPrices.length === 0 || variantPrices.filter((_, el) => $(el).val() === '').length > 0) {

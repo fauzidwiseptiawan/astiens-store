@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\ImageUploadService;
 use App\Helpers\NumberFormatter;
 use App\Scopes\ActiveScope;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -32,27 +31,45 @@ class ProductController extends Controller
     }
 
 
-    function index()
+    public function index()
     {
         return view('backend.product.index');
     }
 
     // Method get brand per page 10
-    function get_brand(Request $request)
+    public function get_brand(Request $request)
     {
         try {
             $query = Brand::query()->withoutGlobalScope(ActiveScope::class);
+
+            // Ambil brand_id yang terkait dengan produk
+            $selectedBrandId = null;
+            if ($request->has('product_id')) {
+                $selectedBrandId = Product::where('id', $request->product_id)->value('brand_id');
+            }
 
             if ($request->has('q')) {
                 $query->where('name', 'like', '%' . $request->q . '%');
             }
 
-            $brands = $query->paginate(10); // Paginasi 10 data per halaman
+            if ($request->has('page')) {
+                // Gunakan pagination dengan 10 data per halaman
+                $brands = $query->paginate(10);
+                $data = $brands->items();
+                $total = $brands->total();
+            } else {
+                // Ambil seluruh data tanpa pagination
+                $brands = $query->get();
+                $data = $brands;
+                $total = $brands->count();
+            }
+
             return response()->json([
-                'status'       => 200,
-                'message'      => 'success',
-                'data'         => $brands->items(),
-                'total'        => $brands->total(),
+                'status'            => 200,
+                'message'           => 'success',
+                'data'              => $data,
+                'selected_brand_id' => $selectedBrandId, // Kirim brand_id yang dipilih
+                'total'             => $total, // Total tergantung pada pagination atau seluruh data
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -64,21 +81,39 @@ class ProductController extends Controller
     }
 
     // Method get category per page 10
-    function get_category(Request $request)
+    public function get_category(Request $request)
     {
         try {
             $query = Category::query()->withoutGlobalScope(ActiveScope::class);
+
+            // Ambil brand_id yang terkait dengan produk
+            $selectedCategoryId = null;
+            if ($request->has('product_id')) {
+                $selectedCategoryId = Product::where('id', $request->product_id)->value('category_id');
+            }
 
             if ($request->has('q')) {
                 $query->where('name', 'like', '%' . $request->q . '%');
             }
 
-            $categorys = $query->paginate(10); // Paginasi 10 data per halaman
+            if ($request->has('page')) {
+                // Gunakan pagination dengan 10 data per halaman
+                $category = $query->paginate(10);
+                $data = $category->items();
+                $total = $category->total();
+            } else {
+                // Ambil seluruh data tanpa pagination
+                $category = $query->get();
+                $data = $category;
+                $total = $category->count();
+            }
+
             return response()->json([
-                'status'       => 200,
-                'message'      => 'success',
-                'data'         => $categorys->items(),
-                'total'        => $categorys->total(),
+                'status'                => 200,
+                'message'               => 'success',
+                'data'                  => $data,
+                'selected_category_id'  => $selectedCategoryId, // Kirim brand_id yang dipilih
+                'total'                 => $total, // Total tergantung pada pagination atau seluruh data
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -89,8 +124,32 @@ class ProductController extends Controller
         }
     }
 
+    // Method get sub category
+    public function sub_category($id)
+    {
+        try {
+            $category = Category::find($id);
+            // Ambil semua subkategori yang terkait dengan kategori tersebut
+            $subCategory = $category->subCategory;
+
+            $selectedSubCategory = $category->subCategory->first()->id ?? null; // Ambil subkategori pertama sebagai contoh
+
+            return response()->json([
+                'status'              => 200,
+                'message'             => 'success',
+                'data'                => $subCategory,
+                'selectedSubCategory' => $selectedSubCategory, // Kirim ID subkategori yang dipilih
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'       => 400,
+                'message'      => $e->getMessage(),
+            ]);
+        }
+    }
+
     // Method get attributes value
-    function get_value($id)
+    public function get_value($id)
     {
         try {
             $value = AttributesValue::withoutGlobalScope(ActiveScope::class)->where('attributes_id', $id)->orderBy('name', 'ASC')->get();
@@ -121,24 +180,6 @@ class ProductController extends Controller
                 'status'       => 200,
                 'message'      => 'success',
                 'data'         => $newCode,
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'status'       => 400,
-                'message'      => $e->getMessage(),
-            ]);
-        }
-    }
-
-    // Method get sub category
-    function sub_category($id)
-    {
-        try {
-            $value = SubCategory::withoutGlobalScope(ActiveScope::class)->where('category_id', $id)->orderBy('name', 'ASC')->get();
-            return response()->json([
-                'status'       => 200,
-                'message'      => 'success',
-                'data'         => $value,
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -196,7 +237,7 @@ class ProductController extends Controller
         return $combinations;
     }
 
-    function fetch(Request $request)
+    public function fetch(Request $request)
     {
         // Mengambil produk tanpa cache
         $products = Product::withoutGlobalScope(ActiveScope::class)->with(['brand', 'category', 'variants'])->orderBy('item_code', 'desc')
@@ -367,13 +408,13 @@ class ProductController extends Controller
             ->make(true);
     }
 
-    function create()
+    public function create()
     {
         $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
         return view('backend.product.add', compact('attributes'));
     }
 
-    function store(Request $request)
+    public function store(Request $request)
     {
 
         $validator = Validator::make(
@@ -453,12 +494,13 @@ class ProductController extends Controller
                 $product->special_offer = $request->special_offer;
                 $product->seo_title = $request->seo_title;
                 $product->seo_desc = $request->seo_desc;
+                $product->weight = $request->weight;
                 $product->is_active = $request->is_active;
                 $product->is_variant = $request->is_variant;
                 $product->hot = $request->hot;
                 $product->new = $request->new;
                 $product->sale = $request->sale;
-                $product->tags = $request->tags ? json_encode($request->tags) : null;
+                $product->tags = $request->tags ? implode(',', $request->tags) : null;
                 $product->created_by = Auth::user()->id;
                 $product->created_at = now();
 
@@ -618,14 +660,14 @@ class ProductController extends Controller
         }
     }
 
-    function get_variants($productId)
+    public function get_variants($productId)
     {
         $variants = ProductVariant::where('product_id', $productId)->get();
         return response()->json(['variants' => $variants]);
     }
 
 
-    function show($id)
+    public function show($id)
     {
         // Retrieve the product with its variants, attributes, and attribute values
         $product = Product::with([
@@ -649,7 +691,7 @@ class ProductController extends Controller
         }
 
         // Ambil attributes yang tersedia di database
-        $attributes = Attributes::all();  // Mengambil semua attributes
+        $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();  // Mengambil semua attributes
 
         // Ambil attribute values untuk masing-masing attribute
         $attributeValues = [];
@@ -657,7 +699,6 @@ class ProductController extends Controller
             $attributeValues[$attribute->id] = AttributesValue::where('attributes_id', $attribute->id)->get();
         }
 
-        // Ambil attribute ids yang sudah dipilih berdasarkan produk
         // Di sini, kita hanya akan mengambil attribute values yang terkait dengan product variants
         $selectedAttributeIds = [];
         foreach ($product->variants as $variant) {

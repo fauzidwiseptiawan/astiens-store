@@ -60,8 +60,10 @@
                 <div class="card">
                     <h5 class="card-header bg-light-subtle">Product Information</h5>
                     <div class="card-body">
-                        <input type="text" id="productId" name="product_id" class="form-control"
-                            value="{{ $product->id }}" disabled>
+                        <input type="hidden" id="productId" name="product_id" class="form-control"
+                            value="{{ $product->id }}" data-selected-brand-id="{{ $product->brand_id }}"
+                            data-selected-category-id="{{ $product->category_id }}" disabled>
+                        <input type="hidden" id="selectedSubCategoryId" value="{{ $product->sub_category_id }}">
                         <div class="col-lg-12">
                             <div class="mb-3">
                                 {{-- <label for="barcode" class="form-label">Item Code</label> --}}
@@ -618,7 +620,7 @@
             return string.charAt(0).toUpperCase() + string.slice(1);
         }
 
-        // get brand and category by request
+        // get brand and brand by request
         $(document).ready(function() {
             // Inisialisasi Select2 untuk Brand
             $('#brandId').select2({
@@ -631,7 +633,8 @@
                     data: function(params) {
                         return {
                             q: params.term, // Kata kunci pencarian
-                            page: params.page || 1 // Halaman yang diminta
+                            page: params.page || 1, // Halaman yang diminta
+                            product_id: $('#productId').val() // Ambil product_id dari elemen terkait
                         };
                     },
                     processResults: function(data, params) {
@@ -642,6 +645,16 @@
                             id: item.id,
                             text: item.name
                         })) || [];
+
+                        // Tandai brand yang dipilih (jika ada)
+                        if (data.selected_brand_id && params.page === 1) {
+                            results.unshift({
+                                id: data.selected_brand_id,
+                                text: results.find(item => item.id === data.selected_brand_id)
+                                    ?.text || 'Selected Brand',
+                                selected: true
+                            });
+                        }
 
                         // Menyisipkan opsi "All Brand" hanya pada halaman pertama
                         if (params.page === 1) {
@@ -669,6 +682,28 @@
                 }
             });
 
+            // Memuat nilai awal jika ada brand yang dipilih
+            const selectedBrandId = $('#productId').data('selected-brand-id'); // Ambil brand_id terkait
+            if (selectedBrandId) {
+                $.ajax({
+                    url: `{{ route('product.getBrand') }}`,
+                    data: {
+                        product_id: $('#productId').val()
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        const selectedBrand = data.data.find(item => item.id === selectedBrandId);
+                        if (selectedBrand) {
+                            const newOption = new Option(selectedBrand.name, selectedBrand.id, true,
+                                true);
+                            $('#brandId').append(newOption).trigger('change');
+                            // Setel opsi sebagai terpilih berdasarkan brand_id
+                            $('#brandId').val(selectedBrand.id).trigger('change');
+                        }
+                    }
+                });
+            }
+
             // Inisialisasi Select2 untuk Category
             $('#categoryId').select2({
                 placeholder: 'Select Category',
@@ -680,7 +715,8 @@
                     data: function(params) {
                         return {
                             q: params.term,
-                            page: params.page || 1
+                            page: params.page || 1,
+                            product_id: $('#productId').val() // Ambil product_id dari elemen terkait
                         };
                     },
                     processResults: function(data, params) {
@@ -692,14 +728,16 @@
                             text: item.name
                         })) || [];
 
-                        // Menyisipkan opsi "All Category" hanya pada halaman pertama
-                        if (params.page === 1) {
+                        // Tandai brand yang dipilih (jika ada)
+                        if (data.selected_category_id && params.page === 1) {
                             results.unshift({
-                                id: 0,
-                                text: 'All Category'
+                                id: data.selected_category_id,
+                                text: results.find(item => item.id === data
+                                        .selected_category_id)
+                                    ?.text || 'Selected Category',
+                                selected: true
                             });
                         }
-
                         return {
                             results: results,
                             pagination: {
@@ -717,6 +755,28 @@
                     return item.text;
                 }
             });
+
+            // Memuat nilai awal jika ada brand yang dipilih
+            const selectedCategoryId = $('#productId').data('selected-category-id'); // Ambil brand_id terkait
+            if (selectedCategoryId) {
+                $.ajax({
+                    url: `{{ route('product.getCategory') }}`,
+                    data: {
+                        product_id: $('#productId').val()
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        const selectedCategory = data.data.find(item => item.id === selectedCategoryId);
+                        if (selectedCategory) {
+                            const newOption = new Option(selectedCategory.name, selectedCategory.id,
+                                true,
+                                true);
+                            $('#categoryId').append(newOption).trigger('change');
+                        }
+                    }
+                });
+            }
+
 
             // Memuat data brand dan category saat inisialisasi
             loadInitialBrands();
@@ -763,7 +823,7 @@
                         $('#categoryId').trigger('change');
                     },
                     error: function() {
-                        console.error('Error loading initial categories');
+                        console.error('Error loading initial categori');
                     }
                 });
             }
@@ -957,10 +1017,10 @@
             });
         });
 
-        // select option categories
+        // select option categori
         $(document).ready(function() {
             // Definisikan fungsi untuk mengambil subkategori
-            function loadSubCategories(id) {
+            function loadSubCategories(id, selectedSubCategory) {
                 var url = "{{ route('product.subCategory', ':id') }}".replace(':id', id);
 
                 $.ajax({
@@ -976,14 +1036,14 @@
 
                         // Buat array dari opsi subkategori
                         const options = response['data'].map(item =>
-                            `<option value="${item['id']}">${item['name']}</option>`
+                            `<option value="${item['id']}" ${item['id'] == selectedSubCategory ? 'selected' : ''}>${item['name']}</option>`
                         ).join('');
 
                         // Tambahkan opsi baru ke dropdown
                         subCategorySelect.append(options);
 
                         // Panggil kembali Select2 untuk memperbarui dropdown
-                        // subCategorySelect.select2(); // Pastikan ini dipanggil untuk memperbarui Select2
+                        subCategorySelect.select2(); // Pastikan ini dipanggil untuk memperbarui Select2
                     }
                 });
             }
@@ -991,10 +1051,20 @@
             // Event handler untuk perubahan pada dropdown kategori
             $('#categoryId').on('change', function() {
                 var id = $(this).val(); // Mengambil nilai terpilih
+                var selectedSubCategory = $('#selectedSubCategoryId')
+                    .val(); // Ambil ID subkategori yang sudah dipilih sebelumnya
                 if (id) { // Pastikan id tidak kosong
-                    loadSubCategories(id);
+                    loadSubCategories(id, selectedSubCategory);
                 }
             });
+
+            // Memanggil loadSubCategories untuk kategori yang sudah terpilih jika ada
+            var initialCategoryId = $('#categoryId').val(); // Ambil nilai kategori awal
+            var selectedSubCategory = $('#selectedSubCategoryId')
+                .val(); // Ambil ID subkategori yang sudah dipilih sebelumnya
+            if (initialCategoryId) {
+                loadSubCategories(initialCategoryId, selectedSubCategory);
+            }
         });
 
         // Select option
@@ -1047,6 +1117,7 @@
             $('.formDetailVariant').show();
             $('.not-variant').hide();
         } else {
+            $('#variant').hide();
             $('.formDetailVariant').hide();
             $('.not-variant').show();
         }

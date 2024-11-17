@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Backend\Auth\AuthController;
 use App\Http\Controllers\Backend\DashboardController;
+use App\Http\Controllers\Backend\ImageUploadTinymceController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\Product\AttributesController;
 use App\Http\Controllers\Backend\Product\AttributesValueController;
@@ -64,6 +65,10 @@ Route::group(['middleware' => 'admin'], function () {
     Route::post('panel/admin/attributes-value/destroy-selected', [AttributesValueController::class, 'destroy_selected'])->name('attributes-value.destroySelected');
     Route::post('panel/admin/attributes-value/destroy-soft/{id}', [AttributesValueController::class, 'destroy_soft'])->name('attributes-value.destroySoft');
     Route::resource('panel/admin/attributes-value', AttributesValueController::class);
+    // route upload image tinymce
+    Route::post('panel/admin/upload-tinymce-image', [ImageUploadTinymceController::class, 'upload_image'])->name('tinymce.upload');
+    Route::post('panel/admin/delete-tinymce-image', [ImageUploadTinymceController::class, 'delete_image'])->name('tinymce.delete');
+    Route::post('panel/admin/update-tinymce-image', [ImageUploadTinymceController::class, 'update_image'])->name('tinymce.update');
     // route sub oder
     Route::resource('panel/admin/order', OrderController::class);
 });
