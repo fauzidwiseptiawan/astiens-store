@@ -1488,6 +1488,7 @@
             fd.append("slugs", slugs);
             fd.append("barcode", barcode);
             fd.append("name", name);
+            fd.append("weight", weight);
             fd.append("category_id", categoryId);
             fd.append("sub_category_id", subCategoryId);
             fd.append("brand_id", brandId);
