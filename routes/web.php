@@ -10,6 +10,7 @@ use App\Http\Controllers\Backend\Product\BrandController;
 use App\Http\Controllers\Backend\Product\CategoryController;
 use App\Http\Controllers\Backend\Product\ProductController;
 use App\Http\Controllers\Backend\Product\SubCategoryController;
+use App\Http\Controllers\Frontend\HomeController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -72,3 +73,5 @@ Route::group(['middleware' => 'admin'], function () {
     // route sub oder
     Route::resource('panel/admin/order', OrderController::class);
 });
+
+Route::get('/', [HomeController::class, 'index']);

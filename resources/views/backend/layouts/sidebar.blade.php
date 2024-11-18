@@ -46,7 +46,7 @@
             <li class="activeDashboard side-nav-item">
                 <a href="{{ route('dashboard') }}" class="side-nav-link">
                     <i class="ri-home-4-line"></i>
-                    <span> Dashboards </span>
+                    <span> Dashboard </span>
                 </a>
             </li>
             <li class="side-nav-title">Apps</li>
@@ -154,7 +154,7 @@
                             <a href="auth-login.html">All Blogs</a>
                         </li>
                         <li>
-                            <a href="auth-login-2.html">Blogs Categories</a>
+                            <a href="auth-login-2.html">Blogs Category</a>
                         </li>
                     </ul>
                 </div>

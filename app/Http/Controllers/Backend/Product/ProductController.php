@@ -725,4 +725,180 @@ class ProductController extends Controller
 
         return view('backend.product.update', compact('product', 'dateRange', 'attributes', 'selectedAttributeIds', 'attributeValues'));
     }
+
+    public function update(Request $request, Product $product)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'item_code'         => 'required|string|max:255|unique:product,item_code,' . $product->id,
+                'category_id'       => 'required|exists:category,id',
+                'sub_category_id'   => 'required|exists:sub_category,id',
+                'brand_id'          => 'required|exists:brand,id',
+                'name'              => 'required|string|max:255',
+                'slugs'             => 'required|string|max:255|unique:product,slugs,' . $product->id,
+                'unit'              => 'required|string|max:50',
+                'barcode'           => 'nullable|max:255|unique:product,barcode,' . $product->id,
+                'short_desc'        => 'nullable|string|max:500',
+                'long_desc'         => 'required|string',
+                'tags'              => 'nullable|string|max:255',
+                'seo'               => 'nullable|string|max:255',
+                'seo_desc'          => 'nullable|string|max:500',
+                'is_active'         => 'required',
+                'tags'              => 'required',
+                'image1'            => 'nullable|image|mimes:jpeg,jpg,png,gif|max:2048', // 2MB Max
+                'is_variant'        => 'required|boolean',
+            ]
+        );
+
+        $validator->setCustomMessages([
+            'price.required_if' => 'The price field is required.',
+            'stock.required_if' => 'The stock field is required.',
+            'sku.required_if' => 'The sku field is required.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'   => 400,
+                'message' => $validator->errors()->toArray()
+            ]);
+        } else {
+            // Mulai transaksi
+            DB::beginTransaction();
+            try {
+                $dateRange = $request->input('discount_range');
+                [$startDate, $endDate] = $dateRange ? explode(' to ', $dateRange) : [null, null];
+
+                // Update data produk
+                $product->update([
+                    'item_code'           => $request->item_code,
+                    'category_id'         => $request->category_id,
+                    'sub_category_id'     => $request->sub_category_id,
+                    'brand_id'            => $request->brand_id,
+                    'name'                => $request->name,
+                    'slugs'               => $request->slugs,
+                    'unit'                => $request->unit,
+                    'discount_start_date' => $startDate,
+                    'discount_end_date'   => $endDate,
+                    'discount'            => $request->discount,
+                    'barcode'             => $request->barcode,
+                    'min_qty'             => $request->min_qty,
+                    'max_qty'             => $request->max_qty,
+                    'stock'               => $request->stock,
+                    'price'               => (int) preg_replace('/[^0-9]/', '', $request->price ?? '0'),
+                    'sku'                 => $request->sku,
+                    'short_desc'          => $request->short_desc,
+                    'long_desc'           => $request->long_desc,
+                    'is_feature'          => $request->is_feature,
+                    'refundable'          => $request->refundable,
+                    'new_arrival'         => $request->new_arrival,
+                    'best_seller'         => $request->best_seller,
+                    'special_offer'       => $request->special_offer,
+                    'seo_title'           => $request->seo_title,
+                    'seo_desc'            => $request->seo_desc,
+                    'weight'              => $request->weight,
+                    'is_active'           => $request->is_active,
+                    'is_variant'          => $request->is_variant,
+                    'hot'                 => $request->hot,
+                    'new'                 => $request->new,
+                    'sale'                => $request->sale,
+                    'tags'                => $request->tags ? implode(',', $request->tags) : null,
+                ]);
+
+                // Update gambar utama
+                if ($request->hasFile('image1')) {
+                    $path = 'upload/image/product';
+                    $pathResize = 'upload/image/product/thumbnail';
+
+                    $fileInfo = $this->imageUploadService->uploadAndResize(
+                        $request->file('image1'),
+                        $path,
+                        $pathResize
+                    );
+                    $product->update([
+                        'image' => $fileInfo['file_name'],
+                        'ext'   => $fileInfo['file_extension'],
+                        'size'  => $fileInfo['file_size'],
+                    ]);
+                }
+
+                // Hapus varian lama jika ada
+                if ($product->is_variant) {
+                    $product->variants()->delete();
+                }
+
+                // Simpan varian baru
+                if ($request->is_variant == 1 && is_array($request->variant_attributes)) {
+                    foreach ($request->variant_attributes as $index => $attribute) {
+                        $price = (int) preg_replace('/[^0-9]/', '', $request->variant_price[$index] ?? '0');
+                        $variant = $product->variants()->create([
+                            'variant'           => implode(' - ', $request->choice_attributes),
+                            'variant_attribute' => $attribute,
+                            'price'             => $price,
+                            'stock'             => $request->variant_stock[$index] ?? 0,
+                            'sku'               => $request->variant_sku[$index] ?? '',
+                        ]);
+
+                        // Update gambar varian
+                        if ($request->hasFile("variant_image.$index")) {
+                            $path = 'upload/image/product/variant';
+                            $pathResize = 'upload/image/product/variant/thumbnail';
+
+                            $fileInfo = $this->imageUploadService->uploadAndResize(
+                                $request->file("variant_image.$index"),
+                                $path,
+                                $pathResize
+                            );
+
+                            $variant->update([
+                                'image' => $fileInfo['file_name'],
+                                'ext'   => $fileInfo['file_extension'],
+                                'size'  => $fileInfo['file_size'],
+                            ]);
+                        }
+
+                        // Split the attribute string if it contains multiple attributes
+                        $attributeArray = explode(', ', $attribute); // Split by comma and space
+                        $attributeValueIds = []; // Simpan ID nilai atribut yang akan diattach
+
+                        foreach ($attributeArray as $key => $attrValue) {
+                            // Get the corresponding choice attribute
+                            $choiceValue = $request->choice_attributes[$key] ?? null;
+
+                            if ($choiceValue) {
+                                // Find the attribute value ID
+                                $attributeValue = AttributesValue::where('name', $attrValue)
+                                    ->whereHas('attributes', function ($query) use ($choiceValue) {
+                                        $query->where('name', $choiceValue);
+                                    })
+                                    ->first();
+
+                                if ($attributeValue) {
+                                    // Simpan ID untuk disinkronisasi nanti
+                                    $attributeValueIds[$attributeValue->id] = ['id' => Str::uuid()];
+                                }
+                            }
+                        }
+
+                        // Sinkronisasi hubungan attributeValues dengan ID terbaru
+                        $variant->attributeValues()->sync($attributeValueIds);
+                    }
+                }
+
+                // Commit transaksi
+                DB::commit();
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Product updated successfully!',
+                ]);
+            } catch (\Throwable $e) {
+                DB::rollback();
+                return response()->json([
+                    'status' => 500,
+                    'message' => 'An error occurred while updating the product.',
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
 }
