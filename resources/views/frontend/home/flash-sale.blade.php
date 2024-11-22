@@ -5,6 +5,7 @@
             <div class="heading-tab-left wow fadeIn animated">
                 <h3 class="section-title mb-20"><span>Flash</span> Sale</h3>
             </div>
+            <div class="flash-countdown" data-countdown="2025/03/25 00:00:00"></div>
         </div>
         <div class="row">
             <div class="col-lg-3 d-none d-lg-flex">

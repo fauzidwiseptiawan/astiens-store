@@ -10,7 +10,7 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-xl-6 col-lg-4">
+                <div class="col-xl-7 col-lg-4">
                     <div class="text-center">
                         <div id="news-flash" class="d-inline-block">
                             <ul>
@@ -23,24 +23,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-lg-4">
+                <div class="col-xl-2 col-lg-4">
                     <div class="header-info header-info-right">
                         <ul>
-                            <li>
-                                <a class="language-dropdown-active" href="#"> <i class="fi-rs-world"></i>
-                                    English <i class="fi-rs-angle-small-down"></i></a>
-                                <ul class="language-dropdown">
-                                    <li><a href="#"><img
-                                                src="{{ asset('template/frontend') }}/imgs/theme/flag-fr.png"
-                                                alt="">Français</a></li>
-                                    <li><a href="#"><img
-                                                src="{{ asset('template/frontend') }}/imgs/theme/flag-dt.png"
-                                                alt="">Deutsch</a></li>
-                                    <li><a href="#"><img
-                                                src="{{ asset('template/frontend') }}/imgs/theme/flag-ru.png"
-                                                alt="">Pусский</a></li>
-                                </ul>
-                            </li>
                             <li><i class="fi-rs-user"></i><a href="page-login-register.html">Log In / Sign Up</a>
                             </li>
                         </ul>
