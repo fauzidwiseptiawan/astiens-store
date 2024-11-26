@@ -10,7 +10,7 @@
     <meta content="Coderthemes" name="author" />
 
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{ asset('template/backend') }}/images/favicon.ico">
+    <link rel="shortcut icon" href="{{ asset('template/frontend') }}/imgs/theme/favicon.svg">
     <!-- Select2 css -->
     <link href="{{ asset('template/backend') }}/vendor/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
     <!-- Daterangepicker css -->
