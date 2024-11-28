@@ -614,7 +614,7 @@
 @push('page-scripts')
     <script>
         // nav active
-        $('#sidebarProduct, .activeProduct, #activeProduct').addClass('show menuitem-active');
+        $('#sidebarProduct, .sidebarProduct, #activeProduct').addClass('show menuitem-active');
 
         function capitalize(string) {
             return string.charAt(0).toUpperCase() + string.slice(1);

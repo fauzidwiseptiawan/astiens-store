@@ -14,9 +14,21 @@ return new class extends Migration
         Schema::create('flash_sale', function (Blueprint $table) {
             $table->uuid('id')->primary();  // UUID sebagai primary key
             $table->string('name'); // Nama flash sale
-            $table->date('start_time'); // Waktu mulai flash sale
-            $table->date('end_time'); // Waktu selesai flash sale
-            $table->timestamps();
+            $table->string('slug'); // Nama flash sale
+            $table->dateTime('start_date'); // Waktu mulai flash sale
+            $table->dateTime('end_date'); // Waktu selesai flash sale
+            $table->text('image')->nullable();
+            $table->string('ext')->nullable();
+            $table->string('size')->nullable();
+            $table->tinyInteger('is_active')->default(1);
+            $table->tinyInteger('is_deleted')->default(0);
+            $table->tinyInteger('is_feature')->default(0);
+            $table->timestamp('created_at')->useCurrent();
+            $table->string('created_by')->nullable();
+            $table->timestamp('updated_at')->nullable();
+            $table->string('updated_by')->nullable();
+            $table->timestamp('deleted_at')->nullable();
+            $table->string('deleted_by')->nullable();
         });
     }
 

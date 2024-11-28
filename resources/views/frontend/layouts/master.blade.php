@@ -17,7 +17,7 @@
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('template/frontend') }}/imgs/theme/favicon.svg">
     <!-- Template CSS -->
-    <link rel="stylesheet" href="{{ asset('template/frontend') }}/css/maind134.css">
+    <link rel="stylesheet" href="{{ asset('template/frontend') }}/css/main.css">
     {{-- style css costume --}}
     @stack('styles')
 </head>

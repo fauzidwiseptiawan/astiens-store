@@ -11,7 +11,6 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $brand = Brand::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
-        return view('frontend.home.main', compact('brand'));
+        return view('frontend.home.main');
     }
 }

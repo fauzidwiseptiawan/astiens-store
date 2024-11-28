@@ -479,7 +479,7 @@
                             <div class="mb-3">
                                 <label for="name" class="form-label">Discount Date Range </label>
                                 <input type="text" id="date" name="date" class="form-control"
-                                    placeholder="2018-10-03 to 2018-10-10">
+                                    placeholder="Select date">
                             </div>
                         </div> <!-- end col -->
                         <div class="col-lg-12">
@@ -561,7 +561,7 @@
 @push('page-scripts')
     <script>
         // nav active
-        $('#sidebarProduct, .activeProduct, #activeProduct').addClass('show menuitem-active');
+        $('#sidebarProduct, .sidebarProduct, #activeProduct').addClass('show menuitem-active');
 
         function capitalize(string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
@@ -721,9 +721,22 @@
         flatpickr("#date", {
             mode: "range",
             dateFormat: "Y-m-d",
+            minDate: new Date(), // Membatasi agar tanggal tidak mundur dari hari ini
             onChange: function(selectedDates, dateStr, instance) {
-                // Jika Anda ingin mendapatkan nilai dan melakukan sesuatu dengan itu
-                console.log(selectedDates); // ini akan memberikan array tanggal yang dipilih
+                const now = new Date();
+                const oneWeekFromNow = new Date(now.setDate(now.getDate() + 7));
+
+                // Validasi tambahan untuk memastikan rentang tetap dalam 7 hari
+                if (selectedDates.some(date => date > oneWeekFromNow)) {
+                    $.toast({
+                        text: "The selected date cannot be more than 1 week from now!",
+                        icon: 'info',
+                        showHideTransition: 'plain',
+                        hideAfter: 2000,
+                        position: 'top-right',
+                    });
+                    instance.clear(); // Menghapus pilihan jika tidak valid
+                }
             }
         });
 

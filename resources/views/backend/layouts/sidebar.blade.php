@@ -50,7 +50,7 @@
                 </a>
             </li>
             <li class="side-nav-title">Apps</li>
-            <li class="activeProduct side-nav-item">
+            <li class="sidebarProduct side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarProduct" aria-expanded="false" aria-controls="sidebarProduct"
                     class="side-nav-link">
                     <i class="ri-mail-line"></i>
@@ -83,7 +83,7 @@
                     </ul>
                 </div>
             </li>
-            <li class="side-nav-item">
+            <li class="sidebarMarketing side-nav-item">
                 <a data-bs-toggle="collapse" href="#sidebarMarketing" aria-expanded="false"
                     aria-controls="sidebarMarketing" class="side-nav-link">
                     <i class="ri-task-line"></i>
@@ -92,16 +92,16 @@
                 </a>
                 <div class="collapse" id="sidebarMarketing">
                     <ul class="side-nav-second-level">
-                        <li>
+                        <li id="activePopUp">
                             <a href="apps-tasks-details.html">Dynamic Pop-up</a>
                         </li>
-                        <li>
-                            <a href="apps-tasks.html">Flash Sale</a>
+                        <li id="activeMarketing">
+                            <a href="{{ route('flash-sale.index') }}">Flash Sale</a>
                         </li>
-                        <li>
+                        <li id="activeSubscribers">
                             <a href="apps-tasks-details.html">Subscribers</a>
                         </li>
-                        <li>
+                        <li id="activeCoupon">
                             <a href="apps-tasks-details.html">Coupon</a>
                         </li>
                     </ul>

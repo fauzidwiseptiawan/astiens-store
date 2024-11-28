@@ -10,6 +10,7 @@ use App\Http\Controllers\Backend\Product\BrandController;
 use App\Http\Controllers\Backend\Product\CategoryController;
 use App\Http\Controllers\Backend\Product\ProductController;
 use App\Http\Controllers\Backend\Product\SubCategoryController;
+use App\Http\Controllers\Backend\Marketing\FlashSaleController;
 use App\Http\Controllers\Frontend\HomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -70,6 +71,14 @@ Route::group(['middleware' => 'admin'], function () {
     Route::post('panel/admin/upload-tinymce-image', [ImageUploadTinymceController::class, 'upload_image'])->name('tinymce.upload');
     Route::post('panel/admin/delete-tinymce-image', [ImageUploadTinymceController::class, 'delete_image'])->name('tinymce.delete');
     Route::post('panel/admin/update-tinymce-image', [ImageUploadTinymceController::class, 'update_image'])->name('tinymce.update');
+    // route flash sale
+    Route::get('panel/admin/flash-sale/fetch', [FlashSaleController::class, 'fetch'])->name('flash-sale.fetch');
+    Route::get('panel/admin/flash-sale/get-product/{id}', [FlashSaleController::class, 'get_product'])->name('flash-sale.getProduct');
+    Route::post('panel/admin/flash-sale/change-active', [FlashSaleController::class, 'change_active'])->name('flash-sale.changeActive');
+    Route::post('panel/admin/flash-sale/change-feature', [FlashSaleController::class, 'change_feature'])->name('flash-sale.changeFeature');
+    Route::post('panel/admin/flash-sale/destroy-selected', [FlashSaleController::class, 'destroy_selected'])->name('flash-sale.destroySelected');
+    Route::post('panel/admin/flash-sale/destroy-soft/{id}', [FlashSaleController::class, 'destroy_soft'])->name('flash-sale.destroySoft');
+    Route::resource('panel/admin/flash-sale', FlashSaleController::class);
     // route sub oder
     Route::resource('panel/admin/order', OrderController::class);
 });
