@@ -11,24 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('flash_sale', function (Blueprint $table) {
-            $table->uuid('id')->primary();  // UUID sebagai primary key
-            $table->string('name'); // Nama flash sale
-            $table->string('slug'); // Nama flash sale
-            $table->dateTime('start_date'); // Waktu mulai flash sale
-            $table->dateTime('end_date'); // Waktu selesai flash sale
-            $table->text('image')->nullable();
-            $table->string('ext')->nullable();
-            $table->string('size')->nullable();
+        Schema::create('category_blogs', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('name')->unique();
+            $table->string('slug')->unique();
             $table->tinyInteger('is_active')->default(1);
             $table->tinyInteger('is_deleted')->default(0);
-            $table->tinyInteger('is_feature')->default(0);
             $table->timestamp('created_at')->useCurrent();
-            $table->string('created_by')->nullable();
+            $table->uuid('created_by')->nullable();
             $table->timestamp('updated_at')->nullable();
-            $table->string('updated_by')->nullable();
+            $table->uuid('updated_by')->nullable();
             $table->timestamp('deleted_at')->nullable();
-            $table->string('deleted_by')->nullable();
+            $table->uuid('deleted_by')->nullable();
 
             $table->foreign('created_by')
                 ->references('id')
@@ -53,6 +47,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('flash_sale');
+        Schema::dropIfExists('category_blogs');
     }
 };

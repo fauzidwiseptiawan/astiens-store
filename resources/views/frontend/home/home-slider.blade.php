@@ -51,7 +51,7 @@
                         alt="">
                     <div class="banner-text">
                         <span>Accessories</span>
-                        <h4>Save 17% on <br>Autumn Hat</h4>
+                        <h4>Save 17% on Autumn Hat</h4>
                         <a href="shop-grid-right.html">Shop Now <i class="fi-rs-arrow-right"></i></a>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                         alt="">
                     <div class="banner-text">
                         <span>Smart Offer</span>
-                        <h4>Save 20% on <br>Eardrop</h4>
+                        <h4>Save 20% on Eardrop</h4>
                         <a href="shop-grid-right.html">Shop Now <i class="fi-rs-arrow-right"></i></a>
                     </div>
                 </div>

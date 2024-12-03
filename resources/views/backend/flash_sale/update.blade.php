@@ -216,8 +216,9 @@
                                                     <option value="Flat"
                                                         {{ $item->discount_type == 'Flat' ? 'selected' : '' }}>Flat
                                                     </option>
-                                                    <option value="Percent"
-                                                        {{ $item->discount_type == 'Percent' ? 'selected' : '' }}>Percent
+                                                    <option value="Percentage"
+                                                        {{ $item->discount_type == 'Percentage' ? 'selected' : '' }}>
+                                                        Percentage
                                                     </option>
                                                 </select>
                                             </td>
@@ -449,7 +450,7 @@
                                         <td>
                                             <select class="form-control type" data-toggle="type" name="type[]" id="type">
                                                 <option value="Flat">Flat</option>
-                                                <option value="Percent">Percent</option>
+                                                <option value="Percentage">Percentage</option>
                                             </select>
                                         </td>
                                     </tr>

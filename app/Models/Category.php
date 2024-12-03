@@ -26,6 +26,7 @@ class Category extends Model
         'updated_at' => 'datetime:Y-m-d H:i:s',
         'deleted_at' => 'datetime:Y-m-d H:i:s',
     ];
+
     protected $fillable = [
         'name',
         'slug',

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Backend\Product;
+namespace App\Http\Controllers\Backend\Marketing;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attributes;
+use App\Models\Coupons;
 use App\Scopes\ActiveScope;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -14,47 +14,53 @@ class CouponController extends Controller
 {
     public function index()
     {
-        $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('name', 'ASC')->get();
-        return view('backend.attributes.index', compact('attributes'));
+        $coupon = Coupons::withoutGlobalScope(ActiveScope::class)->orderBy('code', 'ASC')->get();
+        return view('backend.coupon.index', compact('coupon'));
     }
 
     public function fetch()
     {
-        // fetch attributes
-        $attributes = Attributes::withoutGlobalScope(ActiveScope::class)->orderBy('id', 'ASC')->get();
+        // fetch coupon
+        // Perbarui status is_active berdasarkan end_date
+        Coupons::withoutGlobalScope(ActiveScope::class)
+            ->where('end_date', '<', now())
+            ->update(['is_active' => 0]);
+
+        // Fetch coupon data
+        $coupon = Coupons::withoutGlobalScope(ActiveScope::class)
+            ->orderBy('id', 'ASC')
+            ->get();
+
         // display result datatable
         return datatables()
-            ->of($attributes)
+            ->of($coupon)
             ->addIndexColumn()
-            ->addColumn('select_all', function ($attributes) {
-                return '<input type="checkbox" class="form-check-input select-form" id="select" name="select" value="' . $attributes->id . '">';
+            ->addColumn('select_all', function ($coupon) {
+                return '<input type="checkbox" class="form-check-input select-form" id="select" name="select" value="' . $coupon->id . '">';
             })
-            ->addColumn('attributes', function ($attributes) {
-                return $attributes->name;
+            ->addColumn('coupon', function ($coupon) {
+                return $coupon->code;
             })
-            ->addColumn('publish', function ($attributes) {
-                if ($attributes->is_active == 1) {
+            ->addColumn('publish', function ($coupon) {
+                if ($coupon->is_active == 1) {
                     return '<label class="slideon">
-    						<input type="checkbox" name="is_active" class="switch" data-active="' . $attributes->id . '" value"1" checked>
+    						<input type="checkbox" name="is_active" class="switch" data-active="' . $coupon->id . '" value"1" checked>
     						<span class="slideon-slider"></span>
     					</label>';
                 } else {
                     return '<label class="slideon">
-    						<input type="checkbox" name="is_active" class="switch" data-active="' . $attributes->id . '" value"0">
+    						<input type="checkbox" name="is_active" class="switch" data-active="' . $coupon->id . '" value"0">
     						<span class="slideon-slider"></span>
     					</label>';
                 }
             })
-            ->addColumn('action', function ($attributes) {
+            ->addColumn('action', function ($coupon) {
                 return ' <div class="d-flex flex-wrap gap-2">
-                            <a href="' . route('attributes-value.index', ['id' => $attributes->id]) . '">
-    						    <button type="button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="success-tooltip" data-bs-title="Value" class="btn btn-circle btn-soft-success btn-sm"><i class="ri-eye-fill"></i></button>
-                            </a>
-    						<button type="button" id="show" value="' . $attributes->id . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="warning-tooltip" data-bs-title="Edit" class="btn btn-circle btn-soft-warning btn-sm"><i class="ri-pencil-fill"></i></button>
-                            <button type="button" id="destroySoft" value="' . $attributes->id . '"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="danger-tooltip" data-bs-title="Delete" class="btn btn-circle btn-soft-danger btn-sm"><i class="ri-delete-bin-5-line"></i></button
+                           <button type="button" id="show" value="' . $coupon->id . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="warning-tooltip" data-bs-title="Edit" class="btn btn-circle btn-soft-warning btn-sm"><i class="ri-pencil-fill"></i></button>
+                            <button type="button" id="destroySoft" value="' . $coupon->id . '"  data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="danger-tooltip" data-bs-title="Delete" class="btn btn-circle btn-soft-danger btn-sm"><i class="ri-delete-bin-5-line"></i></button
     				</div>';
             })
-            ->rawColumns(['action', 'publish', 'attributes', 'select_all'])
+            ->rawColumns(['action', 'publish', 'coupon', 'select_all'])
             ->make(true);
     }
 
@@ -63,7 +69,13 @@ class CouponController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'name'         => 'required|unique:attributes',
+                'type_coupon'   => 'required',
+                'code'          => 'required|unique:coupons',
+                'min_purchase'  => 'required',
+                'discount'      => 'required',
+                'type'          => 'required',
+                'max_discount'  => 'required',
+                'date'          => 'required',
             ],
         );
         if ($validator->fails()) {
@@ -72,35 +84,66 @@ class CouponController extends Controller
                 'message' => $validator->errors()->toArray()
             ]);
         } else {
+            $dateRange = $request->input('date');
+            // Memastikan bahwa dateRange tidak kosong
+            if (empty($dateRange)) {
+                $startDate = null;
+                $endDate = null;
+            } else {
+                [$startDate, $endDate] = explode(' to ', $dateRange);
+            }
             // validation is successful it is saved to the database
-            Attributes::create([
-                'name'       => $request->name,
-                'created_by' =>  Auth::user()->id,
-                'created_at' =>  now(),
+            Coupons::create([
+                'type_coupon'       => $request->type_coupon,
+                'code'              => $request->code,
+                'min_purchase'      => $request->min_purchase,
+                'discount_amount'   => $request->discount,
+                'type'              => $request->type,
+                'max_discount'      => $request->max_discount,
+                'start_date'        => $startDate,
+                'end_date'          => $endDate,
+                'created_by'        => Auth::user()->id,
+                'created_at'        => now(),
             ]);
             return response()->json([
                 'status'   => 200,
-                'message'  => 'Adding attributes data was successful!'
+                'message'  => 'Adding coupon data was successful!'
             ]);
         }
     }
 
     public function show($id)
     {
-        $attributes = Attributes::find($id);
+        $coupon = Coupons::select(['id', 'type_coupon', 'code', 'min_purchase', 'discount_amount', 'type', 'max_discount', 'start_date', 'end_date'])->find($id);
+
+        // Initialize date_range as an empty string
+        $date_range = '';
+
+        // Check if both discount dates are set
+        if (!empty($coupon->start_date) && !empty($coupon->end_date)) {
+            // If both dates are present, combine them into a single string
+            $date_range = $coupon->start_date . ' to ' . $coupon->end_date;
+        }
+
         return response()->json([
             'status'       => 200,
             'message'      => 'Modal show!',
-            'attributes'     => $attributes
+            'coupon'       => $coupon,
+            'date_range'   => $date_range
         ]);
     }
 
     public function update(Request $request, $id)
     {
-        $attributes = Attributes::find($id);
+        $coupon = Coupons::find($id);
         $validator = Validator::make($request->all(), [
-            'attributes_id'  => 'required',
-            'name'           => 'required|unique:attributes,name,' . $attributes->id,
+            'type_coupon'   => 'required',
+            'code'          => 'required|unique:coupons,code,' . $coupon->id,
+            'min_purchase'  => 'required',
+            'discount'      => 'required',
+            'type'          => 'required',
+            'max_discount'  => 'required',
+            'date'          => 'required',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -108,37 +151,52 @@ class CouponController extends Controller
                 'message' => $validator->errors()->toArray()
             ]);
         } else {
+            $dateRange = $request->input('date');
+            // Memastikan bahwa dateRange tidak kosong
+            if (empty($dateRange)) {
+                $startDate = null;
+                $endDate = null;
+            } else {
+                [$startDate, $endDate] = explode(' to ', $dateRange);
+            }
             // validation is successful it is saved to the database
-            $attributes->update([
-                'name' => $request->name,
-                'updated_by' =>  Auth::user()->id,
-                'updated_at' =>  Carbon::now(),
+            $coupon->update([
+                'type_coupon'       => $request->type_coupon,
+                'code'              => $request->code,
+                'min_purchase'      => $request->min_purchase,
+                'discount_amount'   => $request->discount,
+                'type'              => $request->type,
+                'max_discount'      => $request->max_discount,
+                'start_date'        => $startDate,
+                'end_date'          => $endDate,
+                'updated_by'        =>  Auth::user()->id,
+                'updated_at'        =>  Carbon::now(),
             ]);
             return response()->json([
                 'status'   => 200,
-                'message'  => 'Update attributes data was successful!'
+                'message'  => 'Update coupon data was successful!'
             ]);
         }
     }
 
     public function change_active(Request $request)
     {
-        $attributes = Attributes::find($request->id);
-        $attributes->update([
+        $coupon = Coupons::find($request->id);
+        $coupon->update([
             'is_active' => $request->is_active,
             'updated_by' =>  Auth::user()->id,
         ]);
         return response()->json([
             'status'   => 200,
-            'message'  => 'Published attributes updated successfully!'
+            'message'  => 'Published coupon updated successfully!'
         ]);
     }
 
     public function destroy_selected(Request $request)
     {
         foreach ($request->id as $id) {
-            $attributes = Attributes::find($id);
-            $attributes->update([
+            $coupon = Coupons::find($id);
+            $coupon->update([
                 'is_deleted' => 1,
                 'deleted_by' =>  Auth::user()->id,
                 'deleted_at' =>  Carbon::now(),
@@ -146,21 +204,21 @@ class CouponController extends Controller
         }
         return response()->json([
             'status'   => 200,
-            'message'  => 'Successfully deleted attributes data!'
+            'message'  => 'Successfully deleted coupon data!'
         ]);
     }
 
     public function destroy_soft($id)
     {
-        $attributes = Attributes::find($id);
-        $attributes->update([
+        $coupon = Coupons::find($id);
+        $coupon->update([
             'is_deleted' => 1,
             'deleted_by' =>  Auth::user()->id,
             'deleted_at' =>  Carbon::now(),
         ]);
         return response()->json([
             'status'   => 200,
-            'message'  => 'Successfully deleted attributes data!'
+            'message'  => 'Successfully deleted coupon data!'
         ]);
     }
 }

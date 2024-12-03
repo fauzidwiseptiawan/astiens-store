@@ -478,7 +478,7 @@ class ProductController extends Controller
                 $product->unit = $request->unit;
                 $product->discount_start_date = $startDate;
                 $product->discount_end_date = $endDate;
-                $product->discount = $request->discount;
+                $product->discount_amount = $request->discount;
                 $product->barcode = $request->barcode;
                 $product->min_qty = $request->min_qty;
                 $product->max_qty = $request->max_qty;
@@ -780,7 +780,7 @@ class ProductController extends Controller
                     'unit'                => $request->unit,
                     'discount_start_date' => $startDate,
                     'discount_end_date'   => $endDate,
-                    'discount'            => $request->discount,
+                    'discount_amount'     => $request->discount,
                     'barcode'             => $request->barcode,
                     'min_qty'             => $request->min_qty,
                     'max_qty'             => $request->max_qty,

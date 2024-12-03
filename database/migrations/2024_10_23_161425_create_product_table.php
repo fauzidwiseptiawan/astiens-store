@@ -32,7 +32,7 @@ return new class extends Migration
             $table->string('stock')->nullable();
             $table->date('discount_start_date')->nullable(); // Tanggal mulai diskon
             $table->date('discount_end_date')->nullable();  // Tanggal berakhir diskon
-            $table->decimal('discount', 5, 2)->nullable(); // Nilai diskon, contoh: 10.50%
+            $table->decimal('discount_amount', 5, 2)->nullable(); // Nilai diskon, contoh: 10.50%
             $table->longText('short_desc')->nullable();
             $table->longText('long_desc')->nullable();
             $table->text('tags')->nullable();

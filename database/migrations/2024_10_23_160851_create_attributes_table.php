@@ -22,6 +22,22 @@ return new class extends Migration
             $table->string('updated_by')->nullable();
             $table->timestamp('deleted_at')->nullable();
             $table->string('deleted_by')->nullable();
+
+            $table->foreign('created_by')
+                ->references('id')
+                ->on('user')
+                ->onUpdate('cascade')
+                ->onDelete('restrict');
+            $table->foreign('updated_by')
+                ->references('id')
+                ->on('user')
+                ->onUpdate('cascade')
+                ->onDelete('restrict');
+            $table->foreign('deleted_by')
+                ->references('id')
+                ->on('user')
+                ->onUpdate('cascade')
+                ->onDelete('restrict');
         });
     }
 

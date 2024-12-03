@@ -3,6 +3,7 @@
 use App\Http\Controllers\Backend\Auth\AuthController;
 use App\Http\Controllers\Backend\DashboardController;
 use App\Http\Controllers\Backend\ImageUploadTinymceController;
+use App\Http\Controllers\Backend\Marketing\CouponController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\Product\AttributesController;
 use App\Http\Controllers\Backend\Product\AttributesValueController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Backend\Product\CategoryController;
 use App\Http\Controllers\Backend\Product\ProductController;
 use App\Http\Controllers\Backend\Product\SubCategoryController;
 use App\Http\Controllers\Backend\Marketing\FlashSaleController;
+use App\Http\Controllers\Backend\Website\HomepageController;
 use App\Http\Controllers\Frontend\HomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -79,6 +81,18 @@ Route::group(['middleware' => 'admin'], function () {
     Route::post('panel/admin/flash-sale/destroy-selected', [FlashSaleController::class, 'destroy_selected'])->name('flash-sale.destroySelected');
     Route::post('panel/admin/flash-sale/destroy-soft/{id}', [FlashSaleController::class, 'destroy_soft'])->name('flash-sale.destroySoft');
     Route::resource('panel/admin/flash-sale', FlashSaleController::class);
+    // route coupon
+    Route::get('panel/admin/coupon/fetch', [CouponController::class, 'fetch'])->name('coupon.fetch');
+    Route::post('panel/admin/coupon/change-active', [CouponController::class, 'change_active'])->name('coupon.changeActive');
+    Route::post('panel/admin/coupon/destroy-selected', [CouponController::class, 'destroy_selected'])->name('coupon.destroySelected');
+    Route::post('panel/admin/coupon/destroy-soft/{id}', [CouponController::class, 'destroy_soft'])->name('coupon.destroySoft');
+    Route::resource('panel/admin/coupon', CouponController::class);
+    // route homepage
+    Route::get('panel/admin/homepage/fetch', [HomepageController::class, 'fetch'])->name('homepage.fetch');
+    Route::post('panel/admin/homepage/change-active', [HomepageController::class, 'change_active'])->name('homepage.changeActive');
+    Route::post('panel/admin/homepage/destroy-selected', [HomepageController::class, 'destroy_selected'])->name('homepage.destroySelected');
+    Route::post('panel/admin/homepage/destroy-soft/{id}', [HomepageController::class, 'destroy_soft'])->name('homepage.destroySoft');
+    Route::resource('panel/admin/homepage', HomepageController::class);
     // route sub oder
     Route::resource('panel/admin/order', OrderController::class);
 });

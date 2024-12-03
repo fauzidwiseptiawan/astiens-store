@@ -30,6 +30,21 @@ return new class extends Migration
                 ->on('attributes')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
+            $table->foreign('created_by')
+                ->references('id')
+                ->on('user')
+                ->onUpdate('cascade')
+                ->onDelete('restrict');
+            $table->foreign('updated_by')
+                ->references('id')
+                ->on('user')
+                ->onUpdate('cascade')
+                ->onDelete('restrict');
+            $table->foreign('deleted_by')
+                ->references('id')
+                ->on('user')
+                ->onUpdate('cascade')
+                ->onDelete('restrict');
         });
     }
 

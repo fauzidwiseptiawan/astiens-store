@@ -63,7 +63,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Add @yield('title')</h5>
+                    <h4 class="modal-title" id="staticBackdropLabel">Add @yield('title')</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div> <!-- end modal header -->
                 <form class="sub-category" action="{{ route('sub-category.store') }}" method="POST">
@@ -113,7 +113,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">Update @yield('title')</h5>
+                    <h4 class="modal-title" id="staticBackdropLabel">Update @yield('title')</h4>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div> <!-- end modal header -->
                 <form class="sub-category" method="POST">

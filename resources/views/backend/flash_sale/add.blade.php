@@ -237,15 +237,10 @@
 
 
             flatpickr("#date", {
-                mode: "range",
+                mode: "range", // Memilih rentang tanggal
                 enableTime: true, // Mengaktifkan pemilihan waktu
-                dateFormat: "Y-m-d H:i", // Format yang mencakup tanggal dan waktu (jam:menit)
-                time_24hr: true, // Menggunakan format 24 jam
-                onChange: function(selectedDates, dateStr, instance) {
-                    // Menampilkan nilai tanggal dan waktu yang dipilih
-                    console.log(selectedDates); // Menampilkan tanggal dan waktu sebagai array
-                    console.log(dateStr); // Menampilkan string tanggal dan waktu dalam format yang telah ditentukan
-                }
+                dateFormat: "Y-m-d H:i:S", // Format tanggal dan waktu
+                time_24hr: true, // Menggunakan format waktu 24 jam
             });
 
             // format file size
@@ -409,8 +404,8 @@
                                         </td>
                                         <td>
                                             <select class="form-control type" data-toggle="type" name="type[]" id="type">
-                                                <option value="1">Flat</option>
-                                                <option value="2">Percent</option>
+                                                <option value="Flat">Flat</option>
+                                                <option value="Percentage">Percentage</option>
                                             </select>
                                         </td>
                                     </tr>

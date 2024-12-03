@@ -116,7 +116,7 @@ class ProductSeeder extends Seeder
                         'stock' => $faker->numberBetween(1, 100),
                         'discount_start_date' => $faker->dateTimeBetween('-1 month', 'now'),
                         'discount_end_date' => $faker->dateTimeBetween('now', '+1 month'),
-                        'discount' => $faker->numberBetween(0, 50),
+                        'discount_amount' => $faker->numberBetween(0, 50),
                         'short_desc' => $faker->sentence,
                         'long_desc' => $faker->paragraph,
                         'tags' => implode(',', $faker->words(3)),

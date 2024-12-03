@@ -7141,7 +7141,9 @@ fieldset:disabled .btn {
 
 @media (min-width: 992px) {
 
-	.modal-lg,
+	.modal-lg{
+		--ct-modal-width: 900px;
+	}
 	.modal-xl {
 		--ct-modal-width: 800px;
 	}

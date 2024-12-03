@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('flash_sale_id');
             $table->uuid('product_id');
-            $table->integer('discount_price')->default(0)->nullable();
+            $table->integer('discount_amount')->default(0)->nullable();
             $table->enum('discount_type', ['Flat', 'Percent']);
             $table->timestamps();
 

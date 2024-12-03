@@ -102,7 +102,7 @@
                             <a href="apps-tasks-details.html">Subscribers</a>
                         </li>
                         <li id="activeCoupon">
-                            <a href="apps-tasks-details.html">Coupon</a>
+                            <a href="{{ route('coupon.index') }}">Coupon</a>
                         </li>
                     </ul>
                 </div>
@@ -124,7 +124,7 @@
                 <div class="collapse" id="sidebarUI">
                     <ul class="side-nav-second-level">
                         <li>
-                            <a href="pages-profile.html">Homepage Setting</a>
+                            <a href="{{ route('homepage.index') }}">Homepage Setting</a>
                         </li>
                         <li>
                             <a href="pages-invoice.html">Header</a>

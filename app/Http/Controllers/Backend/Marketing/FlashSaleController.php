@@ -178,11 +178,11 @@ class FlashSaleController extends Controller
                     foreach ($request->product as $index => $product) {
                         // Create the ProductVariant
                         $flash_sale_product = new FlashSaleProduct([
-                            'flash_sale_id' => $flash_sale->id,
-                            'product_id' => $product,
-                            'discount_price' => $request->discount[$index] ?? 0,
-                            'discount_type' => $request->type[$index] ?? '',
-                            'created_at' => now(),
+                            'flash_sale_id'     => $flash_sale->id,
+                            'product_id'        => $product,
+                            'discount_amount'   => $request->discount[$index] ?? 0,
+                            'discount_type'     => $request->type[$index] ?? '',
+                            'created_at'        => now(),
                         ]);
 
                         // Save the variant
@@ -308,11 +308,11 @@ class FlashSaleController extends Controller
                 foreach ($request->product as $index => $product) {
                     // Create the ProductVariant
                     $flash_sale_product = new FlashSaleProduct([
-                        'flash_sale_id' => $flash_sale->id,
-                        'product_id' => $product,
-                        'discount_price' => $request->discount[$index] ?? 0,
-                        'discount_type' => $request->type[$index] ?? '',
-                        'created_at' => now(),
+                        'flash_sale_id'     => $flash_sale->id,
+                        'product_id'        => $product,
+                        'discount_amount'   => $request->discount[$index] ?? 0,
+                        'discount_type'     => $request->type[$index] ?? '',
+                        'created_at'        => now(),
                     ]);
 
                     // Save the variant
