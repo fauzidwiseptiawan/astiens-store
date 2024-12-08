@@ -88,10 +88,8 @@ Route::group(['middleware' => 'admin'], function () {
     Route::post('panel/admin/coupon/destroy-soft/{id}', [CouponController::class, 'destroy_soft'])->name('coupon.destroySoft');
     Route::resource('panel/admin/coupon', CouponController::class);
     // route homepage
-    Route::get('panel/admin/homepage/fetch', [HomepageController::class, 'fetch'])->name('homepage.fetch');
-    Route::post('panel/admin/homepage/change-active', [HomepageController::class, 'change_active'])->name('homepage.changeActive');
+    Route::get('panel/admin/homepage/save-home-slider/{id}', [HomepageController::class, 'save_home_slider'])->name('homepage.saveHomeSlider');
     Route::post('panel/admin/homepage/destroy-selected', [HomepageController::class, 'destroy_selected'])->name('homepage.destroySelected');
-    Route::post('panel/admin/homepage/destroy-soft/{id}', [HomepageController::class, 'destroy_soft'])->name('homepage.destroySoft');
     Route::resource('panel/admin/homepage', HomepageController::class);
     // route sub oder
     Route::resource('panel/admin/order', OrderController::class);

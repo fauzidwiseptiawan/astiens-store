@@ -11,18 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('banner_image', function (Blueprint $table) {
+        Schema::create('slider_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('banner_id');
+            $table->uuid('slider_groups_id');
+            $table->string('title_h4')->nullable();
+            $table->string('subtitle_h2')->nullable();
+            $table->string('main_heading_h1')->nullable();
+            $table->string('description_p')->nullable();
+            $table->string('link_url')->nullable();
+            $table->tinyInteger('order')->nullable();
             $table->text('image')->nullable();
             $table->string('ext')->nullable();
             $table->string('size')->nullable();
-            $table->tinyInteger('position_order');
             $table->timestamps();
 
-            $table->foreign('banner_id')
+            $table->foreign('slider_groups_id')
                 ->references('id')
-                ->on('banner')
+                ->on('slider_groups')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });
@@ -33,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('banner_image');
+        Schema::dropIfExists('slider_items');
     }
 };
