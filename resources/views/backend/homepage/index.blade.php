@@ -187,13 +187,6 @@
                                                                                         class="text-muted fw-bold edt-file-format"></a>
                                                                                     <p class="mb-0 edt-file-size"></p>
                                                                                 </div>
-                                                                                <div class="col-auto">
-                                                                                    <!-- Button -->
-                                                                                    <button type="button" id="removeImg"
-                                                                                        class="btn btn-link fs-16 text-muted">
-                                                                                        <i class="ri-close-line"></i>
-                                                                                    </button>
-                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -213,7 +206,7 @@
                                             <div class="d-flex justify-content-between">
                                                 <div></div> <!-- Spacer untuk memastikan Save berada di kanan -->
                                                 <button type="button" class="btn btn-primary custom-width"
-                                                    id="saveHomeslider">
+                                                    id="save">
                                                     Save
                                                 </button>
                                             </div>
@@ -337,23 +330,9 @@
                         });
                     }
                 });
-
-                // Optional: Event untuk tombol hapus gambar
-                $(document).on('click', '#removeImg', function() {
-                    let card = $(this).closest('.card');
-                    card.find('#edtImage').val('');
-                    card.find('#edtImagePreview').attr('src', 'https://via.placeholder.com/150?text=No+Image');
-                });
             });
 
-
-            // Pastikan menggunakan event delegation
-            $(document).on('click', '.nav-link', function() {
-                // Tambahkan logika jika ada pengaturan tambahan
-                // console.log('Active tab changed to:', $(this).data('group-id'));
-            });
-
-            $(document).on('click', '#saveHomeslider', function() {
+            $(document).on('click', '#save', function() {
                 // Cari slider group yang aktif
                 let activeGroup = $('.nav-link.active').data('group-id');
 
@@ -403,6 +382,14 @@
                     data: formData,
                     processData: false,
                     contentType: false,
+                    beforeSend: function() {
+                        $('#save').attr('disabled', 'disabled');
+                        $('#save').html('<i class="ri-loader-4-line"></i>');
+                    },
+                    complete: function() {
+                        $('#save').removeAttr('disabled');
+                        $('#save').html('Save');
+                    },
                     success: function(response) {
                         if (response.status == 200) {
                             $.toast({
