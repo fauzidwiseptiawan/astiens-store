@@ -19,7 +19,7 @@ class SliderSeeder extends Seeder
         ];
 
         // Placeholder untuk gambar
-        $placeholderImage = 'https://via.placeholder.com/800x400.png?text=Placeholder+Image';
+        // $placeholderImage = 'https://via.placeholder.com/800x400.png?text=Placeholder+Image';
 
         // Data slider items per group
         $sliderItemsData = [
@@ -31,7 +31,6 @@ class SliderSeeder extends Seeder
                     'description_p' => 'Discover top-quality products at unbeatable prices.',
                     'link_url' => '/shop',
                     'order' => 1,
-                    'image' => $placeholderImage,
                 ],
                 [
                     'title_h4' => 'Explore New Arrivals',
@@ -40,7 +39,6 @@ class SliderSeeder extends Seeder
                     'description_p' => 'Check out our latest collection today.',
                     'link_url' => '/new-arrivals',
                     'order' => 2,
-                    'image' => $placeholderImage,
                 ],
             ],
             'todaysdeal' => [
@@ -51,7 +49,6 @@ class SliderSeeder extends Seeder
                     'description_p' => 'Unbelievable discounts just for you.',
                     'link_url' => '/deals',
                     'order' => 1,
-                    'image' => $placeholderImage,
                 ],
                 [
                     'title_h4' => 'Limited Time Offer',
@@ -60,7 +57,6 @@ class SliderSeeder extends Seeder
                     'description_p' => 'Shop now to avail exclusive discounts.',
                     'link_url' => '/special-offer',
                     'order' => 2,
-                    'image' => $placeholderImage,
                 ],
             ],
             'banner_level_1' => [
@@ -71,7 +67,6 @@ class SliderSeeder extends Seeder
                     'description_p' => 'Shop your favorite items at discounted prices.',
                     'link_url' => '/sale',
                     'order' => 1,
-                    'image' => $placeholderImage,
                 ],
                 [
                     'title_h4' => 'Special Gifts',
@@ -80,7 +75,6 @@ class SliderSeeder extends Seeder
                     'description_p' => 'Find the perfect gift for your loved ones.',
                     'link_url' => '/gifts',
                     'order' => 2,
-                    'image' => $placeholderImage,
                 ],
             ],
             'banner_level_2' => [
@@ -91,7 +85,6 @@ class SliderSeeder extends Seeder
                     'description_p' => 'Get special deals and discounts for members.',
                     'link_url' => '/join',
                     'order' => 1,
-                    'image' => $placeholderImage,
                 ],
                 [
                     'title_h4' => 'Flash Sale',
@@ -100,7 +93,6 @@ class SliderSeeder extends Seeder
                     'description_p' => 'Once it’s gone, it’s gone forever.',
                     'link_url' => '/flash-sale',
                     'order' => 2,
-                    'image' => $placeholderImage,
                 ],
             ],
         ];

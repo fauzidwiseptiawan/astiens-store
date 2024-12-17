@@ -7,13 +7,24 @@ use App\Models\SliderGroups;
 use App\Models\SliderItems;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\ImageUploadService;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class HomepageController extends Controller
 {
+    protected $imageUploadService;
+
+    public function __construct(ImageUploadService $imageUploadService)
+    {
+        $this->imageUploadService = $imageUploadService;
+    }
+
     public function index()
     {
         $sliderGroups = SliderGroups::with('sliderItems')->orderBy('order', 'asc')->get();
-        return view('backend.homepage.index', compact('sliderGroups'));
+        return view('backend.website.homepage.index', compact('sliderGroups'));
     }
 
     public function store(Request $request)
@@ -28,7 +39,7 @@ class HomepageController extends Controller
             'slider_items.*.main_heading_h1' => 'required|string|max:255',
             'slider_items.*.description_p' => 'required|string',
             'slider_items.*.link_url' => 'required|string',
-            // 'slider_items.*.image' => 'nullable|image|max:2048',
+            'slider_items.*.image' => 'nullable|image|max:2048',
         ], [
             'group_id.required' => 'The slider group ID is required.',
             'group_id.exists' => 'The selected slider group ID is invalid.',
@@ -46,8 +57,9 @@ class HomepageController extends Controller
             'slider_items.*.description_p.string' => 'The description (P) must be a string.',
             'slider_items.*.link_url.required' => 'The link URL is required.',
             'slider_items.*.link_url.string' => 'The link URL must be a string.',
-            // 'slider_items.*.image.image' => 'The uploaded file must be an image.',
-            // 'slider_items.*.image.max' => 'The image size cannot exceed 2MB.',
+            // 'slider_items.*.image.required' => 'The image is required.',
+            'slider_items.*.image.image' => 'The uploaded file must be an image.',
+            'slider_items.*.image.max' => 'The image size cannot exceed 2MB.',
         ]);
 
         // Jika validasi gagal
@@ -61,7 +73,7 @@ class HomepageController extends Controller
         $validatedData = $validator->validated();
 
         // Loop untuk memproses setiap slider item
-        foreach ($validatedData['slider_items'] as $item) {
+        foreach ($validatedData['slider_items'] as $index => $item) {
             // Jika id tidak kosong, update atau create
             if (empty($item['id'])) {
                 // Periksa duplikasi berdasarkan title_h4 dan group_id
@@ -72,31 +84,104 @@ class HomepageController extends Controller
                     ->first();
 
                 if (!$existingItem) {
-                    // Tambahkan data baru jika tidak ada yang sama
-                    SliderItems::create([
-                        'slider_groups_id' => $validatedData['group_id'],
-                        'title_h4' => $item['title_h4'],
-                        'subtitle_h2' => $item['subtitle_h2'],
-                        'main_heading_h1' => $item['main_heading_h1'],
-                        'description_p' => $item['description_p'],
-                        'link_url' => $item['link_url'],
-                        // 'image' => isset($item['image']) ? $item['image']->store('slider-images') : null,
-                    ]);
+                    // Logika untuk upload dan resize gambar
+                    if ($request->hasFile("slider_items.{$index}.image")) {
+                        $path = 'upload/image/slider';
+                        $pathResize = 'upload/image/slider/thumbnail';
+
+                        // Menggunakan service untuk meng-upload dan meresize gambar
+                        $fileInfo = $this->imageUploadService->uploadAndResize(
+                            $request->file("slider_items.{$index}.image"), // Akses file berdasarkan index
+                            $path,
+                            $pathResize
+                        );
+                        // Tambahkan data baru dengan gambar
+                        SliderItems::create([
+                            'slider_groups_id' => $validatedData['group_id'],
+                            'title_h4' => $item['title_h4'],
+                            'subtitle_h2' => $item['subtitle_h2'],
+                            'main_heading_h1' => $item['main_heading_h1'],
+                            'description_p' => $item['description_p'],
+                            'link_url' => $item['link_url'],
+                            'image' => $fileInfo['file_name'],
+                            'ext' => $fileInfo['file_extension'],
+                            'size' => $fileInfo['file_size']
+                        ]);
+                    } else {
+                        // Jika tidak ada gambar, simpan tanpa gambar
+                        SliderItems::create([
+                            'slider_groups_id' => $validatedData['group_id'],
+                            'title_h4' => $item['title_h4'],
+                            'subtitle_h2' => $item['subtitle_h2'],
+                            'main_heading_h1' => $item['main_heading_h1'],
+                            'description_p' => $item['description_p'],
+                            'link_url' => $item['link_url']
+                        ]);
+                    }
                 }
             } else {
-                // Jika ID ada, perbarui data berdasarkan ID
-                SliderItems::updateOrCreate(
-                    ['id' => $item['id']],
-                    [
-                        'slider_groups_id' => $validatedData['group_id'],
-                        'title_h4' => $item['title_h4'],
-                        'subtitle_h2' => $item['subtitle_h2'],
-                        'main_heading_h1' => $item['main_heading_h1'],
-                        'description_p' => $item['description_p'],
-                        'link_url' => $item['link_url'],
-                        // 'image' => isset($item['image']) ? $item['image']->store('slider-images') : null,
-                    ]
-                );
+                // Logika untuk upload dan resize gambar
+                if ($request->hasFile("slider_items.{$index}.image")) {
+
+                    $path = 'upload/image/slider';
+                    $pathResize = 'upload/image/slider/thumbnail';
+
+                    if (!empty($item['id'])) {
+                        // Jika ID ada, ambil item lama
+                        $existingItem = SliderItems::find($item['id']);
+
+                        // Hapus gambar lama jika ada dan file baru diupload
+                        if ($existingItem && $request->hasFile("slider_items.{$index}.image")) {
+
+                            $path_exist = 'storage/upload/image/slider/' . $existingItem['image'];
+                            $path_resize_exist = 'storage/upload/image/slider/thumbnail/' . $existingItem['image'];
+
+                            // Menghapus file gambar yang ada jika ada
+                            if (File::exists($path_exist)) {
+                                File::delete($path_exist);
+                                File::delete($path_resize_exist);
+                            }
+                        }
+                    }
+
+                    // Upload gambar baru jika ada
+                    $fileInfo = null;
+                    if ($request->hasFile("slider_items.{$index}.image")) {
+                        $fileInfo = $this->imageUploadService->uploadAndResize(
+                            $request->file("slider_items.{$index}.image"),
+                            $path,
+                            $pathResize
+                        );
+                    }
+                    // Jika ID ada, perbarui data berdasarkan ID
+                    SliderItems::updateOrCreate(
+                        ['id' => $item['id'] ?? null],
+                        [
+                            'slider_groups_id' => $validatedData['group_id'],
+                            'title_h4' => $item['title_h4'],
+                            'subtitle_h2' => $item['subtitle_h2'],
+                            'main_heading_h1' => $item['main_heading_h1'],
+                            'description_p' => $item['description_p'],
+                            'link_url' => $item['link_url'],
+                            'image' => $fileInfo['file_name'],
+                            'ext' => $fileInfo['file_extension'],
+                            'size' => $fileInfo['file_size']
+                        ]
+                    );
+                } else {
+                    // Jika ID ada, perbarui data berdasarkan ID
+                    SliderItems::updateOrCreate(
+                        ['id' => $item['id']],
+                        [
+                            'slider_groups_id' => $validatedData['group_id'],
+                            'title_h4' => $item['title_h4'],
+                            'subtitle_h2' => $item['subtitle_h2'],
+                            'main_heading_h1' => $item['main_heading_h1'],
+                            'description_p' => $item['description_p'],
+                            'link_url' => $item['link_url']
+                        ]
+                    );
+                }
             }
         }
 

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             AttributesSeeder::class,
             SliderSeeder::class,
+            HeaderSeeder::class
         ]);
     }
 }

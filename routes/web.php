@@ -12,6 +12,7 @@ use App\Http\Controllers\Backend\Product\CategoryController;
 use App\Http\Controllers\Backend\Product\ProductController;
 use App\Http\Controllers\Backend\Product\SubCategoryController;
 use App\Http\Controllers\Backend\Marketing\FlashSaleController;
+use App\Http\Controllers\Backend\Website\HeaderController;
 use App\Http\Controllers\Backend\Website\HomepageController;
 use App\Http\Controllers\Frontend\HomeController;
 use Illuminate\Support\Facades\Route;
@@ -91,6 +92,8 @@ Route::group(['middleware' => 'admin'], function () {
     Route::get('panel/admin/homepage/save-home-slider/{id}', [HomepageController::class, 'save_home_slider'])->name('homepage.saveHomeSlider');
     Route::post('panel/admin/homepage/destroy-selected', [HomepageController::class, 'destroy_selected'])->name('homepage.destroySelected');
     Route::resource('panel/admin/homepage', HomepageController::class);
+    // route header
+    Route::resource('panel/admin/header', HeaderController::class);
     // route sub oder
     Route::resource('panel/admin/order', OrderController::class);
 });

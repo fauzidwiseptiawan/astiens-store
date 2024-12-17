@@ -127,7 +127,7 @@
                             <a href="{{ route('homepage.index') }}">Homepage Setting</a>
                         </li>
                         <li>
-                            <a href="pages-invoice.html">Header</a>
+                            <a href="{{ route('header.index') }}">Header</a>
                         </li>
                         <li>
                             <a href="pages-faq.html">Footer</a>
@@ -154,7 +154,7 @@
                             <a href="auth-login.html">All Blogs</a>
                         </li>
                         <li>
-                            <a href="auth-login-2.html">Blogs Category</a>
+                            <a href="auth-login-2.html">Category</a>
                         </li>
                     </ul>
                 </div>
