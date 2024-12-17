@@ -198,10 +198,15 @@
                                                                                     <a
                                                                                         class="text-muted fw-bold file-name">{{ strlen($item->image) > 10 ? substr($item->image, 0, 10) : $item->image ?? '' }}</a>
                                                                                     <a
+<<<<<<< HEAD:resources/views/backend/website/homepage/index.blade.php
                                                                                         class="text-muted fw-bold file-format">{{ $item->ext ?? '' }}</a>
                                                                                     <p class="mb-0 file-size">
                                                                                         {{ number_format($item->size / 1024, 2) }}
                                                                                         KB</p>
+=======
+                                                                                        class="text-muted fw-bold edt-file-format"></a>
+                                                                                    <p class="mb-0 edt-file-size"></p>
+>>>>>>> 288197948e767f13a92dd552c261d2ef7997a130:resources/views/backend/homepage/index.blade.php
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -372,10 +377,93 @@
                             })
                         }
                     });
+<<<<<<< HEAD:resources/views/backend/website/homepage/index.blade.php
                 }
+=======
+
+                    // Kosongkan data-id pada card baru agar id tidak terbawa
+                    newCard.removeAttr('data-id'); // Menghapus data 'data-id' dari card baru
+
+                    // Tambahkan tombol hapus hanya jika bukan card pertama
+                    newCard.find('.d-flex').remove(); // Menghapus tombol hapus pada card pertama yang disalin
+                    if (activeTab.find('.card.slider-items').length > 0) {
+                        // Tambahkan tombol hapus pada card baru
+                        let deleteButton = $(
+                            '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                            '<h4 class="header-title"></h4>' +
+                            '<button type="button" id="deletedSliderItems" class="btn btn-circle btn-soft-danger btn-sm">' +
+                            '<i class="ri-close-line"></i></button>' +
+                            '</div>'
+                        );
+                        newCard.find('.card-body').prepend(
+                            deleteButton); // Menambahkan di bagian atas card-body
+                    }
+
+                    // Tambahkan card baru di bawah card yang ada
+                    activeTab.find('.card.slider-items:last').after(newCard);
+                });
+
+                // Event delegation untuk tombol "Delete" pada card
+                $(document).on('click', '#deletedSliderItems', function() {
+                    var card = $(this).closest('.card.slider-items');
+                    var inputs = card.find('input').val(); // Menyaring elemen input dalam card
+                    var sliderItemId = card.data('id'); // Mengambil ID slider dari atribut data-id (jika ada)
+
+                    var url = "{{ route('homepage.destroy', ':id') }}";
+                    url = url.replace(':id', sliderItemId);
+
+                    // Jika input kosong, hapus card langsung
+                    if (!inputs) {
+                        card.remove();
+                    } else if (sliderItemId) {
+                        Swal.fire({
+                            title: "Are you sure?",
+                            text: "Are you sure you want to delete this data?",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#f46a6a',
+                            confirmButtonText: 'Yes!',
+                            cancelButtonText: 'No',
+                            showClass: {
+                                popup: 'animate__animated animate__bounceInLeft'
+                            },
+                            hideClass: {
+                                popup: 'animate__animated animate__bounceOut'
+                            },
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $.ajaxSetup({
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
+                                            'content')
+                                    }
+                                });
+                                $.ajax({
+                                    url: url,
+                                    type: 'DELETE', // Menggunakan metode DELETE
+                                    success: function(responce) {
+                                        $.toast({
+                                            text: responce.message,
+                                            icon: 'success',
+                                            hideAfter: 1500,
+                                            showHideTransition: 'plain',
+                                            position: 'top-right',
+                                            afterShown: function() {
+                                                card.remove();
+                                            },
+                                        });
+                                    }
+                                })
+                            }
+                        });
+                    }
+                });
+>>>>>>> 288197948e767f13a92dd552c261d2ef7997a130:resources/views/backend/homepage/index.blade.php
             });
         });
 
+<<<<<<< HEAD:resources/views/backend/website/homepage/index.blade.php
         $(document).ready(function() {
             function initializePreview(input) {
                 const file = input.files[0];
@@ -389,6 +477,14 @@
                 // Jika tidak ada file gambar (kosong), sembunyikan preview
                 if (!file) {
                     previewContainer.hide(50);
+=======
+            $(document).on('click', '#save', function() {
+                // Cari slider group yang aktif
+                let activeGroup = $('.nav-link.active').data('group-id');
+
+                if (!activeGroup) {
+                    alert('No active slider group found!');
+>>>>>>> 288197948e767f13a92dd552c261d2ef7997a130:resources/views/backend/homepage/index.blade.php
                     return;
                 }
 
@@ -413,10 +509,68 @@
                 return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
             }
 
+<<<<<<< HEAD:resources/views/backend/website/homepage/index.blade.php
             // Event listener untuk setiap input file
             $(document).on('change', 'input[type="file"][name="image[]"]', function(e) {
                 e.preventDefault();
                 initializePreview(this);
+=======
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ route('homepage.store') }}",
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function() {
+                        $('#save').attr('disabled', 'disabled');
+                        $('#save').html('<i class="ri-loader-4-line"></i>');
+                    },
+                    complete: function() {
+                        $('#save').removeAttr('disabled');
+                        $('#save').html('Save');
+                    },
+                    success: function(response) {
+                        if (response.status == 200) {
+                            $.toast({
+                                text: response.message,
+                                icon: 'success',
+                                showHideTransition: 'plain',
+                                hideAfter: 1500,
+                                position: 'top-right',
+                            });
+                        } else {
+                            $.each(response.message, function(key, value) {
+                                // Ganti titik (.) dengan underscore (_) untuk mendapatkan ID yang dinamis
+                                var inputName = key.replace(/\./g,
+                                    '_'
+                                ); // Misalnya slider_items.3.link_url -> slider_items_3_link_url
+
+                                var errorMessage = value.join(
+                                    ', '); // Gabungkan error jika ada beberapa pesan
+
+                                // Temukan elemen input terkait berdasarkan ID yang sesuai
+                                var inputElement = $('#' + inputName);
+                                var errorElement = $('#' + inputName + '_error');
+
+                                inputElement.addClass(
+                                    'is-invalid'); // Tambahkan kelas is-invalid pada input
+
+                                // Menampilkan pesan error di div invalid-feedback
+                                if (errorElement.length) {
+                                    errorElement.text(errorMessage); // Tampilkan pesan error
+                                    errorElement.show(); // Tampilkan elemen error
+                                }
+                            });
+                        }
+                    },
+                });
+>>>>>>> 288197948e767f13a92dd552c261d2ef7997a130:resources/views/backend/homepage/index.blade.php
             });
 
             // // Reset preview saat tombol remove diklik
