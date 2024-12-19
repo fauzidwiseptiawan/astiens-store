@@ -130,7 +130,7 @@
                             <a href="{{ route('header.index') }}">Header</a>
                         </li>
                         <li>
-                            <a href="pages-faq.html">Footer</a>
+                            <a href="{{ route('footer.index') }}">Footer</a>
                         </li>
                         <li>
                             <a href="pages-pricing.html">Pages</a>
