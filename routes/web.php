@@ -12,15 +12,12 @@ use App\Http\Controllers\Backend\Product\CategoryController;
 use App\Http\Controllers\Backend\Product\ProductController;
 use App\Http\Controllers\Backend\Product\SubCategoryController;
 use App\Http\Controllers\Backend\Marketing\FlashSaleController;
+use App\Http\Controllers\Backend\Website\AppearanceController;
 use App\Http\Controllers\Backend\Website\FooterController;
 use App\Http\Controllers\Backend\Website\HeaderController;
 use App\Http\Controllers\Backend\Website\HomepageController;
 use App\Http\Controllers\Frontend\HomeController;
 use Illuminate\Support\Facades\Route;
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
 
 // route auth login
 Route::get('panel/admin/login', [AuthController::class, 'index'])->name('login');
@@ -99,6 +96,10 @@ Route::group(['middleware' => 'admin'], function () {
     Route::resource('panel/admin/header', HeaderController::class);
     // route sub oder
     Route::resource('panel/admin/order', OrderController::class);
+    // route sub oder
+    Route::resource('panel/admin/appearance', AppearanceController::class);
 });
 
+// route sub oder
+Route::get('get_appearance', [HomeController::class, 'get_appearance'])->name('appearance.getAppearance');
 Route::get('/', [HomeController::class, 'index']);

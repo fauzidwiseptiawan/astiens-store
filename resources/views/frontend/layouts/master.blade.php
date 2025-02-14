@@ -241,6 +241,11 @@
     <!-- Template  JS -->
     <script src="{{ asset('template/frontend') }}/js/maind134.js?v=3.4"></script>
     <script src="{{ asset('template/frontend') }}/js/shopd134.js?v=3.4"></script>
+    <!-- JS Library -->
+    @stack('page-scripts')
+    <!-- Page Specific JS File -->
+    @stack('after-scripts')
+
 </body>
 
 
